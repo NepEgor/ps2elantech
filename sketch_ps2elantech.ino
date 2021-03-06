@@ -20,6 +20,37 @@ const uint8_t reportDescription[] = {
 
 PS2 ps2(CLOCK_PIN, DATA_PIN);
 
+void mouse_init() {
+    /*State ps2state;
+    while(ps2state != WRITE_FINISH) {
+        ps2.writeByte(0xFF);
+        ps2state = ps2.getState();
+    }*/
+
+    uint8_t param[3] = {0xFF, 0xFF, 0xFF};
+
+    do {
+        ps2.command(0x02FF, param);
+        CSerial.println(ps2.getState());
+    } while(!ps2.getIdle());
+
+    for(uint8_t i = 0; i < 3; ++i) {
+        CSerial.println(param[i], BIN);
+        param[i] = 0xFF;
+    }
+
+    delay(2000);
+
+    do {
+        ps2.command(0x01F2, param);
+        CSerial.println(ps2.getState());
+    } while(!ps2.getIdle());
+
+    for(uint8_t i = 0; i < 3; ++i) {
+        CSerial.println(param[i], BIN);
+    }
+}
+
 void setup() {
     CSerial.begin(9600);
     //HID.begin(CSerial, reportDescription, sizeof(reportDescription));
@@ -35,49 +66,34 @@ void setup() {
 
     attachInterrupt(CLOCK_PIN, int_on_clock_1, FALLING);
 
-    //CSerial.println(ps2.getState());
-
     delay(100);
 
-    State ps2state;
-    do{
-        ps2.writeByte(0xF2);
-        ps2state = ps2.getState();
-    } while(ps2state != WRITE && ps2state != IDLE);
-
-    //while(ps2.getState() != IDLE);
-    ps2.readByte();
-    //ps2.readByte();
-    /*while(ps2.getState() != IDLE);
-    CSerial.println(ps2.getState());
+    mouse_init();
     
-    CSerial.println(ps2.readByte());
-    CSerial.println(ps2.getState());
-
-    CSerial.println(ps2.readByte());
-    CSerial.println(ps2.getState());
-
-    CSerial.println(ps2.readByte());
-    CSerial.println(ps2.getState());
-    */
     CSerial.println("setup end");
-
-    //while(ps2.getState() != IDLE);
-
 }
 
 void loop() {
-    //CSerial.println(ps2.shift);
-    //if(ps2.write_shift) CSerial.println(ps2.write_shift);
-    //CSerial.println(ps2.getState());
     queue_elem_t buf;
-    if(!ps2.queue.pull(buf)){
+    /*
+    if(!ps2.queue.pull(buf)) {
         CSerial.println(buf, BIN);
     }
-    
+    */
+    /*if(ps2.Idle()) {
+        ps2.writeByte(0xEB);
+    }*/
+    /*
+    if(!ps2.readByte(&buf)) {
+        CSerial.println(buf, BIN);
+        ps2.setIdle();
+    }*/
 }
 
-void int_on_clock_1(){
-    //digitalWrite(PC13, LOW);
+void int_on_clock_1() {
+    digitalWrite(PC13, LOW);
+
     ps2.int_on_clock();
+
+    digitalWrite(PC13, HIGH);
 }

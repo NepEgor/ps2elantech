@@ -8,9 +8,11 @@
 enum State: uint8_t
 {
     IDLE,
-    READ,
     WRITE_START,
     WRITE,
+    WRITE_FINISH,
+    READ,
+    READ_FINISH,
 };
 
 class PS2
@@ -24,12 +26,16 @@ class PS2
 
     Queue queue;
 
-    volatile uint16_t raw;
+    volatile uint8_t raw;
     volatile uint8_t shift;
     volatile uint8_t parity;
 
     volatile uint32_t start;
     volatile uint16_t interval;
+
+    volatile uint8_t left_bytes;
+    volatile uint8_t send_bytes;
+    volatile uint8_t recv_bytes;
 
     void int_read();
     void int_write();
@@ -42,8 +48,10 @@ class PS2
     
     State getState();
     void setIdle();
+    uint8_t getIdle();
 
-    uint8_t readByte();
+    void startReading();
+    uint8_t readByte(uint8_t &data);
     void writeByte(uint8_t data);
 
     void command(uint16_t command, uint8_t *param);

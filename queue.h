@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-typedef uint16_t queue_elem_t;
+typedef uint8_t queue_elem_t;
 
 class Queue
 {
