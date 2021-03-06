@@ -41,9 +41,8 @@ void setup() {
 
     State ps2state;
     do{
-        ps2.writeByte(0xFF);
+        ps2.writeByte(0xF2);
         ps2state = ps2.getState();
-        //CSerial.println(millis());
     } while(ps2state != WRITE && ps2state != IDLE);
 
     //while(ps2.getState() != IDLE);
