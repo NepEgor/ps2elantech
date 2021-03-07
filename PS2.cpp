@@ -52,7 +52,7 @@ uint8_t PS2::getIdle() {
 // R - number of returns
 // CC - command
 // command args and returns in params array
-void PS2::command(uint16_t command, uint8_t *param) {
+uint8_t PS2::command(uint16_t command, uint8_t *param) {
     switch(state) {
         case IDLE:
             left_bytes = 0;
@@ -88,10 +88,13 @@ void PS2::command(uint16_t command, uint8_t *param) {
             }
             else {
                 setIdle();
+                return 0;
             }
 
             break;
     }
+
+    return 1;
 }
 
 /* readByte delays

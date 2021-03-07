@@ -21,18 +21,11 @@ const uint8_t reportDescription[] = {
 PS2 ps2(CLOCK_PIN, DATA_PIN);
 
 void mouse_init() {
-    /*State ps2state;
-    while(ps2state != WRITE_FINISH) {
-        ps2.writeByte(0xFF);
-        ps2state = ps2.getState();
-    }*/
-
     uint8_t param[3] = {0xFF, 0xFF, 0xFF};
 
-    do {
-        ps2.command(0x02FF, param);
+    while(ps2.command(0x02FF, param)) {
         CSerial.println(ps2.getState());
-    } while(!ps2.getIdle());
+    }
 
     for(uint8_t i = 0; i < 3; ++i) {
         CSerial.println(param[i], BIN);
@@ -41,12 +34,11 @@ void mouse_init() {
 
     delay(2000);
 
-    do {
-        ps2.command(0x01F2, param);
+    while(ps2.command(0x01F2, param)) {
         CSerial.println(ps2.getState());
-    } while(!ps2.getIdle());
+    }
 
-    for(uint8_t i = 0; i < 3; ++i) {
+    for(uint8_t i = 0; i < 2; ++i) {
         CSerial.println(param[i], BIN);
     }
 }
