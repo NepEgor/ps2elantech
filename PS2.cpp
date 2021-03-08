@@ -46,6 +46,10 @@ uint8_t PS2::getIdle() {
     return state == IDLE;
 }
 
+void PS2::commandWait(uint16_t command, uint8_t *param){
+    while(this->command(command, param)) { }
+}
+
 // write command byte
 // command format 0xARCC
 // A - number of args
@@ -53,6 +57,7 @@ uint8_t PS2::getIdle() {
 // CC - command
 // command args and returns in params array
 uint8_t PS2::command(uint16_t command, uint8_t *param) {
+    uint8_t buf;
     switch(state) {
         case IDLE:
             left_bytes = 0;
@@ -79,16 +84,30 @@ uint8_t PS2::command(uint16_t command, uint8_t *param) {
             break;
 
         case READ_FINISH:
-            if(!readByte(param[left_bytes])) {
-                ++left_bytes;
-            }
+            if(!readByte(buf)) {
+                if(left_bytes == 0) {
+                    switch(buf){
+                        case 0xFA: // ACK
+                        case 0xFC: // ERROR
+                        case 0xFE: // NAC
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else{
+                    param[left_bytes - 1] = buf;
+                }
 
-            if(left_bytes <= recv_bytes) {
-                startReading();
-            }
-            else {
-                setIdle();
-                return 0;
+                ++left_bytes;
+
+                if(left_bytes <= recv_bytes) {
+                    startReading();
+                }
+                else {
+                    setIdle();
+                    return 0;
+                }
             }
 
             break;

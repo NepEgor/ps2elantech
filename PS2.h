@@ -54,6 +54,7 @@ class PS2
     uint8_t readByte(uint8_t &data);
     void writeByte(uint8_t data);
 
+    void commandWait(uint16_t command, uint8_t *param);
     uint8_t command(uint16_t command, uint8_t *param);
 
     void int_on_clock();
