@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 
-enum State: uint8_t
+enum State: uint8
 {
     IDLE,
     WRITE_START,
@@ -17,45 +17,45 @@ enum State: uint8_t
 
 class PS2
 {
-    public:
+    private:
     
-    int clockPin;
-    int dataPin;
+    uint8 clockPin;
+    uint8 dataPin;
 
     State state;
 
     Queue queue;
 
-    volatile uint8_t raw;
-    volatile uint8_t shift;
-    volatile uint8_t parity;
+    volatile uint8 raw;
+    volatile uint8 shift;
+    volatile uint8 parity;
 
-    volatile uint32_t start;
-    volatile uint16_t interval;
+    volatile uint32 start;
+    volatile uint16 interval;
 
-    volatile uint8_t left_bytes;
-    volatile uint8_t send_bytes;
-    volatile uint8_t recv_bytes;
+    volatile uint8 left_bytes;
+    volatile uint8 send_bytes;
+    volatile uint8 recv_bytes;
 
     void int_read();
     void int_write();
 
     public:
 
-    PS2(int clockPin, int dataPin);
+    PS2() {}
 
-    void initialize();
+    void initialize(uint8 clockPin, uint8 dataPin);
     
     State getState();
     void setIdle();
-    uint8_t getIdle();
+    uint8 getIdle();
 
     void startReading();
-    uint8_t readByte(uint8_t &data);
-    void writeByte(uint8_t data);
+    uint8 readByte(uint8 &data);
+    void writeByte(uint8 data);
 
-    void commandWait(uint16_t command, uint8_t *param);
-    uint8_t command(uint16_t command, uint8_t *param);
+    void commandWait(uint16 command, uint8 *param);
+    uint8 command(uint16 command, uint8 *param);
 
     void int_on_clock();
 };

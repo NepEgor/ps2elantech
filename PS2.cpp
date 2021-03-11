@@ -10,7 +10,7 @@ void low(int pin) {
     digitalWrite(pin, LOW);
 }
 
-PS2::PS2(int clockPin, int dataPin) {
+void PS2::initialize(uint8 clockPin, uint8 dataPin) {
     this->clockPin = clockPin;
     this->dataPin = dataPin;
 
@@ -21,10 +21,6 @@ PS2::PS2(int clockPin, int dataPin) {
     start = 0;
     interval = 0;
 
-    state = IDLE;
-}
-
-void PS2::initialize() {
     low(clockPin);
     low(dataPin);
 
@@ -36,15 +32,15 @@ State PS2::getState() {
 }
 
 void PS2::setIdle() {
-    //low(clockPin);
+    low(clockPin);
     state = IDLE;
 }
 
-uint8_t PS2::getIdle() {
+uint8 PS2::getIdle() {
     return state == IDLE;
 }
 
-void PS2::commandWait(uint16_t command, uint8_t *param){
+void PS2::commandWait(uint16 command, uint8 *param){
     while(this->command(command, param)) { }
 }
 
@@ -54,8 +50,8 @@ void PS2::commandWait(uint16_t command, uint8_t *param){
 // R - number of returns
 // CC - command
 // command args and returns in params array
-uint8_t PS2::command(uint16_t command, uint8_t *param) {
-    uint8_t buf;
+uint8 PS2::command(uint16 command, uint8 *param) {
+    uint8 buf;
     switch(state) {
         case IDLE:
             left_bytes = 0;
@@ -129,7 +125,7 @@ void PS2::startReading() {
     }
 }
 
-uint8_t PS2::readByte(uint8_t &data) {
+uint8 PS2::readByte(uint8 &data) {
     if(!queue.pull(data)){
         return 0;
     }
@@ -137,7 +133,7 @@ uint8_t PS2::readByte(uint8_t &data) {
     return 1;
 }
 
-void PS2::writeByte(uint8_t data) {
+void PS2::writeByte(uint8 data) {
     switch(state) {
         case WRITE_FINISH:
         case READ_FINISH:
@@ -187,7 +183,7 @@ void PS2::int_on_clock() {
 }
 
 void PS2::int_read() {
-    uint8_t bit = digitalRead(dataPin);
+    uint8 bit = digitalRead(dataPin);
 
     /*
         0 - start bit
@@ -230,7 +226,7 @@ void PS2::int_read() {
 }
 
 void PS2::int_write() {
-    uint8_t bit = 0;
+    uint8 bit = 0;
 
     /*
         start bit sent already

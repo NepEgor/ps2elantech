@@ -1,11 +1,11 @@
 #include "queue.h"
 /*
-bool queue_empty(struct queue_t *q)
+bool queue_empty(struct queue *q)
 {
   return q.size == 0;
 }
 
-bool queue_full(struct queue_t *q)
+bool queue_full(struct queue *q)
 {
   return q.size == QCAPACITY;
 }
@@ -17,7 +17,7 @@ Queue::Queue()
 }
 
 // return 1 if full
-uint8_t Queue::push(queue_elem_t elem)
+uint8 Queue::push(queue_elem elem)
 {
     if (size < QCAPACITY)
     {
@@ -35,7 +35,7 @@ uint8_t Queue::push(queue_elem_t elem)
 }
 
 // returns 1 if empty
-uint8_t Queue::pull(queue_elem_t &elem)
+uint8 Queue::pull(queue_elem &elem)
 {
     if (size > 0)
     {
