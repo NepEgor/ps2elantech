@@ -37,9 +37,7 @@ State PS2::getState() {
 
 void PS2::setIdle() {
     //low(clockPin);
-    //high(clockPin);
     state = IDLE;
-    //digitalWrite(PC13, HIGH);
 }
 
 uint8_t PS2::getIdle() {
@@ -85,11 +83,11 @@ uint8_t PS2::command(uint16_t command, uint8_t *param) {
 
         case READ_FINISH:
             if(!readByte(buf)) {
-                if(left_bytes == 0) {
+                if(!left_bytes) {
                     switch(buf){
-                        case 0xFA: // ACK
-                        case 0xFC: // ERROR
-                        case 0xFE: // NAC
+                        case 0xFA: // TODO ACK
+                        case 0xFC: // TODO ERROR
+                        case 0xFE: // TODO NAC
                             break;
                         default:
                             break;
@@ -116,34 +114,6 @@ uint8_t PS2::command(uint16_t command, uint8_t *param) {
     return 1;
 }
 
-/* readByte delays
-uint8_t PS2::readByte() {
-    uint16_t buf;
-    if(!read_queue.pull(buf))
-        return buf & 0xFF;
-
-    //while(state != IDLE);
-
-    //delay(10);
-
-    while(state != IDLE);
-
-    state = READ;
-
-    high(dataPin);
-    high(clockPin);
-
-    // interrupt
-  
-    while(state != IDLE);
-
-    if(!read_queue.pull(buf))
-        return buf & 0xFF;
-
-    else return 0xFF; // error
-
-}*/
-
 void PS2::startReading() {
     switch(state) {
         case READ_FINISH:
@@ -167,32 +137,6 @@ uint8_t PS2::readByte(uint8_t &data) {
     return 1;
 }
 
-/* writeByte delays
-void PS2::writeByte(uint8_t data) {
-    while(state != IDLE);
-
-    state = WRITE;
-    raw = data;
-    //high(clockPin);
-    //delayMicroseconds(100);
-    //delay(100);
-
-    low(clockPin);
-    high(dataPin);
-
-    delayMicroseconds(100);
-    //delay(100);
-
-    low(dataPin);
-
-    //delay(10);
-
-    high(clockPin);
-
-}
-*/
-
-// call in a loop
 void PS2::writeByte(uint8_t data) {
     switch(state) {
         case WRITE_FINISH:
@@ -229,12 +173,10 @@ void PS2::int_on_clock() {
 
     switch(state) {
         case READ:
-            //digitalWrite(PC13, LOW);
             int_read();
             break;
 
         case WRITE:
-            //digitalWrite(PC13, LOW);
             int_write();
             break;
 
@@ -268,9 +210,7 @@ void PS2::int_read() {
             return;
         
         case 10: // stop
-            //queue.push((raw >> 1) & 0xFF);
             queue.push(raw);
-            //setIdle();
             state = READ_FINISH;
             goto reset_frame;
 
@@ -291,7 +231,6 @@ void PS2::int_read() {
 
 void PS2::int_write() {
     uint8_t bit = 0;
-    //digitalWrite(PC13, LOW);
 
     /*
         start bit sent already
@@ -308,7 +247,6 @@ void PS2::int_write() {
     }
     else if(shift == 8) { // parity
         digitalWrite(dataPin, parity);
-        //digitalWrite(dataPin, (~__builtin_parity(raw)) & 1);
         ++shift;
     }
     else if(shift == 9) {
@@ -317,7 +255,6 @@ void PS2::int_write() {
     }
     else if(shift == 10) {
         bit = digitalRead(dataPin);
-        //setIdle();
         state = WRITE_FINISH;
         // reset
         raw = 0;
