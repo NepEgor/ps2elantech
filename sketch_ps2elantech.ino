@@ -1,20 +1,23 @@
-#include "PS2.h"
 #include "debug.h"
-#define DATA_PIN PB9
-#define CLOCK_PIN PB8
 
 #include <USBComposite.h>
 USBCompositeSerial CSerial;
 
+/*
 const uint8 reportDescription[] = {
    HID_MOUSE_REPORT_DESCRIPTOR(),
 };
 
-//USBHID HID;
-//HIDMouse hid_mouse(HID);
+USBHID HID;
+HIDMouse hid_mouse(HID);
+*/
 
-PS2 ps2;
+#include "trackpad.h"
+#define DATA_PIN PB9
+#define CLOCK_PIN PB8
+TrackPad trackpad;
 
+/*
 void mouse_init() {
     uint8 param[3] = {0xFF, 0xFF, 0xFF};
 
@@ -32,6 +35,7 @@ void mouse_init() {
     }
 
 }
+*/
 
 void setup() {
     CSerial.begin(9600);
@@ -44,11 +48,11 @@ void setup() {
     delay(5000);
     CSerial.println("setup");
 
-    ps2.initialize(CLOCK_PIN, DATA_PIN);
-
     attachInterrupt(CLOCK_PIN, int_on_clock_1, FALLING);
 
-    mouse_init();
+    trackpad.initialize(CLOCK_PIN, DATA_PIN);
+
+    //mouse_init();
     
     CSerial.println("setup end");
 }
@@ -68,7 +72,7 @@ void loop() {
 void int_on_clock_1() {
     digitalWrite(PC13, LOW);
 
-    ps2.int_on_clock();
+    trackpad.int_on_clock();
 
     digitalWrite(PC13, HIGH);
 }
