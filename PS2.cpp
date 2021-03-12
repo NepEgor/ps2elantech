@@ -21,6 +21,8 @@ void PS2::initialize(uint8 clockPin, uint8 dataPin) {
     start = 0;
     interval = 0;
 
+    sliced_shift = 8;
+
     low(clockPin);
     low(dataPin);
 
@@ -40,8 +42,29 @@ uint8 PS2::getIdle() {
     return state == IDLE;
 }
 
-void PS2::commandWait(uint16 command, uint8 *param){
+void PS2::commandWait(uint16 command, uint8 *param) {
     while(this->command(command, param)) { }
+}
+
+uint8 PS2::sliced_command(uint16 command) {
+    if(sliced_shift < 0) {
+        sliced_shift = 8;
+        return 0;
+    }
+    else if(sliced_shift == 8) {
+        if(!command(PS2_CMD_SETSCALE11, NULL)) {
+            sliced_shift -= 2;
+            command_part = (command >> sliced_shift) & 3);
+        }
+    }
+    else { // 6 - 0
+        if(!command(PS2_CMD_SETRES, &command_part) {
+            sliced_shift -= 2;
+            command_part = (command >> sliced_shift) & 3);
+        }
+    }
+
+    return 1;
 }
 
 // write command byte

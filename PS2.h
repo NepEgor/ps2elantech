@@ -37,6 +37,9 @@ class PS2
     volatile uint8 send_bytes;
     volatile uint8 recv_bytes;
 
+    volatile int8 sliced_shift;
+    volatile uint8 command_part;
+
     void int_read();
     void int_write();
 
@@ -56,6 +59,7 @@ class PS2
 
     void commandWait(uint16 command, uint8 *param);
     uint8 command(uint16 command, uint8 *param);
+    uint8 sliced_command(uint16 command);
 
     void int_on_clock();
 };
