@@ -11,6 +11,7 @@ class TrackPad
 
     PS2 ps2;
 
+    void elantech_detect();
 
     public:
 

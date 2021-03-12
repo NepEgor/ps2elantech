@@ -1,6 +1,9 @@
 #ifndef PS2DEFINES_H
 #define PS2DEFINES_H
 
+#define PS2_SEND_BYTES(COMMAND) ((COMMAND) >> 12) & 0xf
+#define PS2_RECV_BYTES(COMMAND) ((COMMAND) >> 8) & 0xf
+
 #define PS2_CMD_SETSCALE11	0x00e6
 #define PS2_CMD_SETSCALE21	0x00e7
 #define PS2_CMD_SETRES	    0x10e8
