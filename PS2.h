@@ -1,6 +1,8 @@
 #ifndef PS2_H
 #define PS2_H
 
+#include "debug.h"
+
 #include "queue.h"
 
 #include <Arduino.h>
@@ -30,15 +32,15 @@ class PS2
     volatile uint8 shift;
     volatile uint8 parity;
 
-    volatile uint32 start;
-    volatile uint16 interval;
+    uint32 start;
+    uint16 interval;
 
-    volatile uint8 left_bytes;
-    volatile uint8 send_bytes;
-    volatile uint8 recv_bytes;
+    uint8 left_bytes;
+    uint8 send_bytes;
+    uint8 recv_bytes;
 
-    volatile int8 sliced_shift;
-    volatile uint8 command_part;
+    int8 sliced_shift;
+    uint8 command_part;
 
     void int_read();
     void int_write();

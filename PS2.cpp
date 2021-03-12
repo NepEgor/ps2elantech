@@ -1,5 +1,7 @@
 #include "PS2.h"
 
+#include "ps2defines.h"
+
 void high(int pin) {
     pinMode(pin, INPUT);
     digitalWrite(pin, HIGH);
@@ -47,20 +49,21 @@ void PS2::commandWait(uint16 command, uint8 *param) {
 }
 
 uint8 PS2::sliced_command(uint16 command) {
+
     if(sliced_shift < 0) {
         sliced_shift = 8;
         return 0;
     }
     else if(sliced_shift == 8) {
-        if(!command(PS2_CMD_SETSCALE11, NULL)) {
+        if(!this->command(PS2_CMD_SETSCALE11, NULL)) {
             sliced_shift -= 2;
-            command_part = (command >> sliced_shift) & 3);
+            command_part = (command >> sliced_shift) & 3;
         }
     }
     else { // 6 - 0
-        if(!command(PS2_CMD_SETRES, &command_part) {
+        if(!this->command(PS2_CMD_SETRES, &command_part)) {
             sliced_shift -= 2;
-            command_part = (command >> sliced_shift) & 3);
+            command_part = (command >> sliced_shift) & 3;
         }
     }
 
