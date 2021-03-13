@@ -19,7 +19,7 @@ enum State: uint8
 
 class PS2
 {
-    private:
+    public:
     
     uint8 clockPin;
     uint8 dataPin;
@@ -28,20 +28,27 @@ class PS2
 
     Queue queue;
 
+    // interupt variables
     volatile uint8 raw;
     volatile uint8 shift;
     volatile uint8 parity;
 
+    // delay for holding clock before sending byte
     uint32 start;
     uint16 interval;
 
+    // command variables
     uint8 left_bytes;
     uint8 send_bytes;
     uint8 recv_bytes;
+    uint8 buf;
+    uint8 handleACK;
 
+    // sliced_command variables
     int8 sliced_shift;
     uint8 command_part;
 
+    // interupt handlers
     void int_read();
     void int_write();
 
@@ -57,7 +64,7 @@ class PS2
 
     void startReading();
     uint8 readByte(uint8 &data);
-    void writeByte(uint8 data);
+    uint8 writeByte(uint8 data);
 
     void commandWait(uint16 command, uint8 *param);
     uint8 command(uint16 command, uint8 *param);

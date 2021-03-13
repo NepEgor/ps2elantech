@@ -25,6 +25,8 @@ void PS2::initialize(uint8 clockPin, uint8 dataPin) {
 
     sliced_shift = 8;
 
+    handleACK = 0;
+
     low(clockPin);
     low(dataPin);
 
@@ -77,14 +79,13 @@ uint8 PS2::sliced_command(uint16 command) {
 // CC - command
 // command args and returns in params array
 uint8 PS2::command(uint16 command, uint8 *param) {
-    uint8 buf;
+
     switch(state) {
         case IDLE:
             left_bytes = 0;
-            send_bytes = (command >> 12) & 0xf;
-            recv_bytes = (command >> 8) & 0xf;
+            send_bytes = PS2_SEND_BYTES(command);
+            recv_bytes = PS2_RECV_BYTES(command);
         case WRITE_START:
-        case WRITE:
             if(!left_bytes) {
                 writeByte(command & 0xFF);
             }
@@ -94,52 +95,55 @@ uint8 PS2::command(uint16 command, uint8 *param) {
             
             break;
 
-        case WRITE_FINISH:
-            ++left_bytes;
-            if(left_bytes > send_bytes) {
-                left_bytes = 0;
-                startReading();
-            }
-
-            break;
-
         case READ_FINISH:
-            if(!readByte(buf)) {
-                if(!left_bytes) {
-                    switch(buf){
-                        case 0xFA: // TODO ACK
-                        case 0xFC: // TODO ERROR
-                        case 0xFE: // TODO NAC
-                            break;
-                        default:
-                            break;
+            if(!handleACK) {
+                if(!readByte(buf)) {
+                    param[left_bytes] = buf;
+
+                    ++left_bytes;
+
+                    if(left_bytes < recv_bytes) {
+                        state = IDLE;
+                        readByte(buf);
+                    }
+                    else {
+                        setIdle();
+                        return 0;
                     }
                 }
-                else{
-                    param[left_bytes - 1] = buf;
-                }
-
+                break;
+            }
+            // else
+        case WRITE_FINISH:
+            if(!writeByte(0)) {
                 ++left_bytes;
 
-                if(left_bytes <= recv_bytes) {
-                    startReading();
+                if(left_bytes > send_bytes) {
+                    if(!recv_bytes) {
+                        setIdle();
+                        return 0;
+                    }
+                    
+                    left_bytes = 0;
+                    state = IDLE;
+                    readByte(buf);
                 }
                 else {
-                    setIdle();
-                    return 0;
+                    state = WRITE_START;
                 }
             }
+            
+            break;
 
+        default:
             break;
     }
 
     return 1;
 }
 
-void PS2::startReading() {
+uint8 PS2::readByte(uint8 &data) {
     switch(state) {
-        case READ_FINISH:
-        case WRITE_FINISH:
         case IDLE:
             state = READ;
 
@@ -148,24 +152,26 @@ void PS2::startReading() {
 
             // interrupt
             break;
-    }
-}
 
-uint8 PS2::readByte(uint8 &data) {
-    if(!queue.pull(data)){
-        return 0;
+        case READ_FINISH:
+            if(!queue.pull(data)){
+                return 0;
+            }
+
+            break;
+
+        default:
+            break;
     }
-    
     return 1;
 }
 
-void PS2::writeByte(uint8 data) {
+uint8 PS2::writeByte(uint8 data) {
     switch(state) {
-        case WRITE_FINISH:
-        case READ_FINISH:
         case IDLE:
             state = WRITE_START;
             raw = data;
+            handleACK = 0;
 
             low(clockPin);
             high(dataPin);
@@ -187,8 +193,33 @@ void PS2::writeByte(uint8 data) {
             // interrupt
 
             break;
+
+        // handle ACK
+        case WRITE_FINISH:
+            handleACK = 1;
+            state = IDLE;
+        case READ_FINISH:
+            if(!readByte(buf)) {
+                switch(buf){
+                    case 0xFA: // TODO ACK
+                    case 0xFC: // TODO ERROR
+                    case 0xFE: // TODO NAC
+                        break;
+                    default:
+                        break;
+                }
+
+                handleACK = 0;
+                return 0;
+            }
+
+            break;
+
+        default:
+            break;
     }
 
+    return 1;
 }
 
 void PS2::int_on_clock() {

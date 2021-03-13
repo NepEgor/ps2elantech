@@ -22,7 +22,7 @@ void TrackPad::initialize(uint8 clockPin, uint8 dataPin) {
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETID));
 
     CSerial.println("PS2_CMD_RESET_DIS");
-    ps2.commandWait(PS2_CMD_RESET_DIS, param);
+    ps2.commandWait(PS2_CMD_RESET_DIS, NULL);
     
     elantech_detect();
 }
