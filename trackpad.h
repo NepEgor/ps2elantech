@@ -11,6 +11,10 @@ class TrackPad
 
     PS2 ps2;
 
+    uint8  hw_version;
+    uint32 fw_version;
+    uint8  ic_version;
+
     void elantech_detect();
 
     public:

@@ -46,6 +46,37 @@ void TrackPad::elantech_detect() {
 
     while(ps2.sliced_command(ETP_FW_VERSION_QUERY)) {}
     ps2.commandWait(PS2_CMD_GETINFO, param);
-
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
+
+    //fw_version = (((uint32)param[0]) << 16) | (((uint16)param[1]) << 8) | param[2];
+    fw_version = (param[0] << 16) | (param[1] << 8) | param[2];
+    ic_version = (fw_version & 0x0f0000) >> 16;
+
+    if (fw_version < 0x020030 || fw_version == 0x020600)
+		hw_version = 1;
+	else {
+		switch (ic_version) {
+		case 2:
+		case 4:
+			hw_version = 2;
+			break;
+		case 5:
+			hw_version = 3;
+			break;
+		case 6 ... 15:
+			hw_version = 4;
+			break;
+		default:
+			hw_version = 0xff;
+		}
+	}
+
+    CSerial.print("fw\t");
+    CSerial.println(fw_version, HEX);
+
+    CSerial.print("hw\t");
+    CSerial.println(hw_version, HEX);
+
+    CSerial.print("ic\t");
+    CSerial.println(ic_version, HEX);
 }
