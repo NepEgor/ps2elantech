@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "debug.h"
 
 #include <USBComposite.h>
@@ -16,6 +18,8 @@ HIDMouse hid_mouse(HID);
 #define DATA_PIN PB9
 #define CLOCK_PIN PB8
 TrackPad trackpad;
+
+void int_on_clock_1();
 
 void setup() {
     CSerial.begin(9600);

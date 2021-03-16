@@ -1,4 +1,4 @@
-PS/2 library for stm32duino boards.
+PS/2 interfacing project based on stm32 board using PlatformIO.
 Ultimate goal is to interface with Elantech trackpads.
 
 Hardware:
