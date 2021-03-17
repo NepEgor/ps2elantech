@@ -5,6 +5,7 @@
 
 #include "PS2.h"
 
+// Elantech trackpad
 class TrackPad
 {
     public:
@@ -15,13 +16,17 @@ class TrackPad
     uint32 fw_version;
     uint8  ic_version;
 
+    uint8 command_state;
+
     void elantech_detect();
 
     public:
 
-    TrackPad() {}
+    TrackPad();
 
     void initialize(uint8 clockPin, uint8 dataPin);
+
+    uint8 elantech_command(uint8 command, uint8 *param, bool wait = false);
 
     void inline int_on_clock(){
         ps2.int_on_clock();

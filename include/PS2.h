@@ -42,7 +42,7 @@ class PS2
     uint8 send_bytes;
     uint8 recv_bytes;
     uint8 buf;
-    uint8 handleACK;
+    bool handleACK;
 
     // sliced_command variables
     int8 sliced_shift;
@@ -66,9 +66,20 @@ class PS2
     uint8 readByte(uint8 &data);
     uint8 writeByte(uint8 data);
 
-    void commandWait(uint16 command, uint8 *param);
-    uint8 command(uint16 command, uint8 *param);
-    uint8 sliced_command(uint16 command);
+    // write command byte
+    // command format 0xARCC
+    // A - number of args
+    // R - number of returns
+    // CC - command
+    // command args and returns in params array
+    uint8 command(uint16 command, uint8 *param, bool wait = false);
+    
+    // sliced_command() sends an extended PS/2 command to the mouse
+    // using sliced syntax, understood by advanced devices, such as Logitech
+    // or Synaptics touchpads. The command is encoded as:
+    // 0xE6 0xE8 rr 0xE8 ss 0xE8 tt 0xE8 uu where (rr*64)+(ss*16)+(tt*4)+uu
+    // is the command.
+    uint8 sliced_command(uint16 command, bool wait = false);
 
     void int_on_clock();
 };

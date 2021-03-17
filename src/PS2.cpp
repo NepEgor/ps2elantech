@@ -25,7 +25,7 @@ void PS2::initialize(uint8 clockPin, uint8 dataPin) {
 
     sliced_shift = 8;
 
-    handleACK = 0;
+    handleACK = false;
 
     low(clockPin);
     low(dataPin);
@@ -46,98 +46,90 @@ uint8 PS2::getIdle() {
     return state == IDLE;
 }
 
-void PS2::commandWait(uint16 command, uint8 *param) {
-    while(this->command(command, param)) { }
-}
-
-uint8 PS2::sliced_command(uint16 command) {
-
-    if(sliced_shift < 0) {
-        sliced_shift = 8;
-        return 0;
-    }
-    else if(sliced_shift == 8) {
-        if(!this->command(PS2_CMD_SETSCALE11, NULL)) {
-            sliced_shift -= 2;
-            command_part = (command >> sliced_shift) & 3;
+uint8 PS2::sliced_command(uint16 command, bool wait) {
+    do {
+        if(sliced_shift < 0) {
+            sliced_shift = 8;
+            return 0;
         }
-    }
-    else { // 6 - 0
-        if(!this->command(PS2_CMD_SETRES, &command_part)) {
-            sliced_shift -= 2;
-            command_part = (command >> sliced_shift) & 3;
+        else if(sliced_shift == 8) {
+            if(!this->command(PS2_CMD_SETSCALE11, NULL)) {
+                sliced_shift -= 2;
+                command_part = (command >> sliced_shift) & 3;
+            }
         }
-    }
-
+        else { // 6 - 0
+            if(!this->command(PS2_CMD_SETRES, &command_part)) {
+                sliced_shift -= 2;
+                command_part = (command >> sliced_shift) & 3;
+            }
+        }
+    } while(wait);
+    
     return 1;
 }
 
-// write command byte
-// command format 0xARCC
-// A - number of args
-// R - number of returns
-// CC - command
-// command args and returns in params array
-uint8 PS2::command(uint16 command, uint8 *param) {
+uint8 PS2::command(uint16 command, uint8 *param, bool wait) {
+    do {
+        switch(state) {
+            case IDLE:
+                left_bytes = 0;
+                send_bytes = PS2_SEND_BYTES(command);
+                recv_bytes = PS2_RECV_BYTES(command);
+            case WRITE_START:
+                if(!left_bytes) {
+                    writeByte(command & 0xFF);
+                }
+                else {
+                    writeByte(param[left_bytes - 1]);
+                }
+                
+                break;
 
-    switch(state) {
-        case IDLE:
-            left_bytes = 0;
-            send_bytes = PS2_SEND_BYTES(command);
-            recv_bytes = PS2_RECV_BYTES(command);
-        case WRITE_START:
-            if(!left_bytes) {
-                writeByte(command & 0xFF);
-            }
-            else {
-                writeByte(param[left_bytes - 1]);
-            }
-            
-            break;
+            case READ_FINISH:
+                if(!handleACK) {
+                    if(!readByte(buf)) {
+                        param[left_bytes] = buf;
 
-        case READ_FINISH:
-            if(!handleACK) {
-                if(!readByte(buf)) {
-                    param[left_bytes] = buf;
+                        ++left_bytes;
 
+                        if(left_bytes < recv_bytes) {
+                            state = IDLE;
+                            readByte(buf);
+                        }
+                        else {
+                            setIdle();
+                            return 0;
+                        }
+                    }
+                    break;
+                }
+                // else
+            case WRITE_FINISH:
+                if(!writeByte(0)) {
                     ++left_bytes;
 
-                    if(left_bytes < recv_bytes) {
+                    if(left_bytes > send_bytes) {
+                        if(!recv_bytes) {
+                            setIdle();
+                            return 0;
+                        }
+                        
+                        left_bytes = 0;
                         state = IDLE;
                         readByte(buf);
                     }
                     else {
-                        setIdle();
-                        return 0;
+                        state = WRITE_START;
                     }
                 }
+                
                 break;
-            }
-            // else
-        case WRITE_FINISH:
-            if(!writeByte(0)) {
-                ++left_bytes;
 
-                if(left_bytes > send_bytes) {
-                    if(!recv_bytes) {
-                        setIdle();
-                        return 0;
-                    }
-                    
-                    left_bytes = 0;
-                    state = IDLE;
-                    readByte(buf);
-                }
-                else {
-                    state = WRITE_START;
-                }
-            }
-            
-            break;
-
-        default:
-            break;
-    }
+            default:
+                break;
+        } // switch
+    } while(wait);
 
     return 1;
 }
@@ -171,7 +163,7 @@ uint8 PS2::writeByte(uint8 data) {
         case IDLE:
             state = WRITE_START;
             raw = data;
-            handleACK = 0;
+            handleACK = false;
 
             low(clockPin);
             high(dataPin);
@@ -196,7 +188,7 @@ uint8 PS2::writeByte(uint8 data) {
 
         // handle ACK
         case WRITE_FINISH:
-            handleACK = 1;
+            handleACK = true;
             state = IDLE;
         case READ_FINISH:
             if(!readByte(buf)) {
@@ -209,7 +201,7 @@ uint8 PS2::writeByte(uint8 data) {
                         break;
                 }
 
-                handleACK = 0;
+                handleACK = false;
                 return 0;
             }
 
