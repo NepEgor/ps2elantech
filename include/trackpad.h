@@ -16,9 +16,16 @@ class TrackPad
     uint32 fw_version;
     uint8  ic_version;
 
+    uint8 capabilities[3];
+
+    uint32 x_res;
+    uint32 y_res;
+    uint32 bus;
+
     uint8 command_state;
 
     void elantech_detect();
+    void elantech_query_info();
 
     public:
 

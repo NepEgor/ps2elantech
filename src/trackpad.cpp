@@ -2,10 +2,19 @@
 
 #include "ps2defines.h"
 
-void printParam(uint8 *param, uint8 len) {
+void printParam(uint8 *param, uint8 len = 3) {
     for(uint8 i = 0; i < len; ++i) {
         CSerial.println(param[i], BIN);
     }
+}
+
+/*
+ * (value from firmware) * 10 + 790 = dpi
+ * we also have to convert dpi to dots/mm (*10/254 to avoid floating point)
+ */
+static unsigned int elantech_convert_res(unsigned int val)
+{
+	return (val * 10 + 790) * 10 / 254;
 }
 
 TrackPad::TrackPad() {
@@ -59,6 +68,7 @@ void TrackPad::initialize(uint8 clockPin, uint8 dataPin) {
     ps2.command(PS2_CMD_RESET_DIS, NULL, true);
     
     elantech_detect();
+    elantech_query_info();
 }
 
 /*  
@@ -110,6 +120,10 @@ void TrackPad::elantech_detect() {
     ps2.command(PS2_CMD_GETINFO, param, true);
 
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
+}
+
+void TrackPad::elantech_query_info() {
+    uint8 param[3];
 
     CSerial.println("Firmware");
 
@@ -119,7 +133,6 @@ void TrackPad::elantech_detect() {
 
     //CSerial.println(elantech_is_signature_valid(param));
 
-    //fw_version = (((uint32)param[0]) << 16) | (((uint16)param[1]) << 8) | param[2];
     fw_version = (param[0] << 16) | (param[1] << 8) | param[2];
     ic_version = (fw_version & 0x0f0000) >> 16;
 
@@ -132,9 +145,11 @@ void TrackPad::elantech_detect() {
 			hw_version = 2;
 			break;
 		case 5:
+            // elan 33059v-3000
 			hw_version = 3;
 			break;
 		case 6 ... 15:
+            // elan 33200v-3600
 			hw_version = 4;
 			break;
 		default:
@@ -150,4 +165,32 @@ void TrackPad::elantech_detect() {
 
     CSerial.print("ic\t");
     CSerial.println(ic_version, HEX);
+
+    CSerial.println("Capabilities");
+
+    elantech_command(ETP_CAPABILITIES_QUERY, capabilities, true);
+    printParam(capabilities);
+
+    CSerial.println("Samples");
+    elantech_command(ETP_SAMPLE_QUERY, param, true);
+    printParam(param);
+
+    CSerial.println("Resolution");
+    elantech_command(ETP_RESOLUTION_QUERY, param, true);
+    printParam(param);
+
+    x_res = elantech_convert_res(param[1] & 0x0f);
+    y_res = elantech_convert_res((param[1] & 0xf0) >> 4);
+	bus = param[2];
+
+    CSerial.print("x_res\t");
+    CSerial.println(x_res);
+
+    CSerial.print("y_res\t");
+    CSerial.println(y_res);
+
+    CSerial.print("bus\t");
+    CSerial.println(bus);
+
+    
 }
