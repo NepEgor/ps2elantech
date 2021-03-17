@@ -62,7 +62,6 @@ class PS2
     void setIdle();
     uint8 getIdle();
 
-    void startReading();
     uint8 readByte(uint8 &data);
     uint8 writeByte(uint8 data);
 

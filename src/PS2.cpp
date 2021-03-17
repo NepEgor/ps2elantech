@@ -174,10 +174,12 @@ uint8 PS2::writeByte(uint8 data) {
             break;
 
         case WRITE_START:
+            // hold clock low for 100 us
             if(micros() - start >= interval) {
                 interval = 0;
                 state = WRITE;
 
+                // start bit: 0
                 low(dataPin);
                 high(clockPin);
             }
@@ -234,12 +236,10 @@ void PS2::int_on_clock() {
 void PS2::int_read() {
     uint8 bit = digitalRead(dataPin);
 
-    /*
-        0 - start bit
-        1-8 - data
-        9 - parity
-        10 - stop
-    */
+    // 0 - start bit
+    // 1-8 - data
+    // 9 - parity
+    // 10 - stop
     switch(shift) {
         
         case 0: // first bit must be 0
@@ -277,33 +277,39 @@ void PS2::int_read() {
 void PS2::int_write() {
     uint8 bit = 0;
 
-    /*
-        start bit sent already
-        0-7 - data
-        8 - parity
-        9 - stop
-        10 - read ack
-    */
-    if(shift >= 0 && shift <= 7) {
-        bit = (raw >> shift) & 1;
-        parity ^= bit;
-        digitalWrite(dataPin, bit);
-        ++shift;
-    }
-    else if(shift == 8) { // parity
-        digitalWrite(dataPin, parity);
-        ++shift;
-    }
-    else if(shift == 9) {
-        high(dataPin);
-        ++shift;
-    }
-    else if(shift == 10) {
-        bit = digitalRead(dataPin);
-        state = WRITE_FINISH;
-        // reset
-        raw = 0;
-        shift = 0;
-        parity = 1;
+    // start bit sent in writeByte()
+    // 0-7 - data
+    // 8 - parity
+    // 9 - stop
+    // 10 - read ack
+    switch(shift) {
+        case 0 ... 7:
+            bit = (raw >> shift) & 1;
+            parity ^= bit;
+            digitalWrite(dataPin, bit);
+            ++shift;
+            break;
+
+        case 8:
+            digitalWrite(dataPin, parity);
+            ++shift;
+            break;
+
+        case 9:
+            high(dataPin);
+            ++shift;
+            break;
+
+        case 10:
+            bit = digitalRead(dataPin);
+            state = WRITE_FINISH;
+            // reset
+            raw = 0;
+            shift = 0;
+            parity = 1;
+            break;
+
+        default:
+            break;
     }
 }
