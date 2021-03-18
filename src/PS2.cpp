@@ -53,7 +53,7 @@ uint8 PS2::sliced_command(uint16 command, bool wait) {
             return 0;
         }
         else if(sliced_shift == 8) {
-            if(!this->command(PS2_CMD_SETSCALE11, NULL)) {
+            if(!this->command(PS2_CMD_SETSCALE11)) {
                 sliced_shift -= 2;
                 command_part = (command >> sliced_shift) & 3;
             }

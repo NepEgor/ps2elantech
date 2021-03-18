@@ -71,7 +71,7 @@ class PS2
     // R - number of returns
     // CC - command
     // command args and returns in params array
-    uint8 command(uint16 command, uint8 *param, bool wait = false);
+    uint8 command(uint16 command, uint8 *param = NULL, bool wait = false);
     
     // sliced_command() sends an extended PS/2 command to the mouse
     // using sliced syntax, understood by advanced devices, such as Logitech
