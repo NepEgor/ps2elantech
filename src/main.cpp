@@ -29,7 +29,7 @@ void setup() {
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, HIGH);
 
-    //delay(5000);
+    delay(1500);
     CSerial.println("setup");
 
     attachInterrupt(CLOCK_PIN, int_on_clock_1, FALLING);

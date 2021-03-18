@@ -8,7 +8,7 @@
 // Elantech trackpad
 class TrackPad
 {
-    public:
+    private:
 
     PS2 ps2;
 
@@ -21,6 +21,14 @@ class TrackPad
     uint32 x_res;
     uint32 y_res;
     uint32 bus;
+
+    uint32 x_max;
+    uint32 y_max;
+
+    uint8 x_traces;
+    uint8 y_traces;
+
+    uint8 width;
 
     uint8 command_state;
 

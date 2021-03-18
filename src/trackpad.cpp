@@ -136,10 +136,10 @@ void TrackPad::elantech_query_info() {
     fw_version = (param[0] << 16) | (param[1] << 8) | param[2];
     ic_version = (fw_version & 0x0f0000) >> 16;
 
-    if (fw_version < 0x020030 || fw_version == 0x020600)
+    if(fw_version < 0x020030 || fw_version == 0x020600)
 		hw_version = 1;
 	else {
-		switch (ic_version) {
+		switch(ic_version) {
 		case 2:
 		case 4:
 			hw_version = 2;
@@ -176,12 +176,17 @@ void TrackPad::elantech_query_info() {
     printParam(param);
 
     CSerial.println("Resolution");
-    elantech_command(ETP_RESOLUTION_QUERY, param, true);
-    printParam(param);
 
-    x_res = elantech_convert_res(param[1] & 0x0f);
-    y_res = elantech_convert_res((param[1] & 0xf0) >> 4);
-	bus = param[2];
+    x_res = 31;
+	y_res = 31;
+	if(hw_version == 4) {
+        elantech_command(ETP_RESOLUTION_QUERY, param, true);
+        printParam(param);
+
+        x_res = elantech_convert_res(param[1] & 0x0f);
+        y_res = elantech_convert_res((param[1] & 0xf0) >> 4);
+        bus = param[2];
+    }
 
     CSerial.print("x_res\t");
     CSerial.println(x_res);
@@ -192,5 +197,53 @@ void TrackPad::elantech_query_info() {
     CSerial.print("bus\t");
     CSerial.println(bus);
 
+    // query range information
+	switch(hw_version) {
+        case 3:
+            elantech_command(ETP_FW_ID_QUERY, param, true);
+
+            x_max = (0x0f & param[0]) << 8 | param[1];
+            y_max = (0xf0 & param[0]) << 4 | param[2];
+
+            break;
+
+        case 4:
+            elantech_command(ETP_FW_ID_QUERY, param, true);
+
+            x_max = (0x0f & param[0]) << 8 | param[1];
+            y_max = (0xf0 & param[0]) << 4 | param[2];
+
+            // column number of traces
+            x_traces = capabilities[1];
+            //if ((x_traces < 2) || (x_traces > info->x_max))
+            //    return -EINVAL;
+
+            width = x_max / (x_traces - 1);
+
+            // row number of traces
+            y_traces = capabilities[2];
+            //if ((traces >= 2) && (traces <= info->y_max))
+            //    info->y_traces = traces;
+
+            break;
+
+        default: // No plans on supporting hw 1 and 2
+            break;
+    }
+
+    CSerial.print("x_max\t");
+    CSerial.println(x_max);
+    
+    CSerial.print("y_max\t");
+    CSerial.println(y_max);
+    
+    CSerial.print("x_traces\t");
+    CSerial.println(x_traces);
+
+    CSerial.print("y_traces\t");
+    CSerial.println(y_traces);
+
+    CSerial.print("width\t");
+    CSerial.println(width);
     
 }
