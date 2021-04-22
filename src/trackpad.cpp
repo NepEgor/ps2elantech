@@ -20,34 +20,88 @@ static unsigned int elantech_convert_res(unsigned int val)
 TrackPad::TrackPad() {
     command_state = 0;
     write_reg_state = 0;
+    timeout_tries = 0;
+    timeout_state = 0;
 }
 
-uint8 TrackPad::elantech_command(uint8 command, uint8 *param, bool wait) {
+uint8 TrackPad::ps2_command_timeout(uint16 command, uint8 *param, bool wait) {
     do {
-        switch(command_state) {
-            case 0:
-                if(ps2.command(ETP_PS2_CUSTOM_COMMAND)) {
-                    break;
-                }
-                ++command_state;
+        if(timeout_tries < ETP_PS2_COMMAND_TRIES) {
+            switch(timeout_state) {
+                case 0: // start try
+                    timeout_state = 1;
+                    timeout_start = micros();
 
-            case 1:
-                if(ps2.command(command)) {
-                    break;
-                }
-                ++command_state;
+                case 1: // ongoing try
+                    if(!ps2.command(command, param)) {
+                        timeout_tries = 0;
+                        timeout_state = 0;
+                        return 0;
+                    }
 
-            case 2:
-                if(ps2.command(PS2_CMD_GETINFO, param)) {
-                    break;
-                }
-                command_state = 0;
-                return 0;
+                    if(micros() - timeout_start < ETP_PS2_COMMAND_TIMEOUT) {
+                        break;
+                    }
 
-            default:
-                command_state = 0;
-                break;
+                    CSerial.print("Retry ");
+                    CSerial.println(timeout_tries + 1);
+
+                    timeout_state = 2;
+                    timeout_start = micros();
+
+                case 2: // delay
+                    if(micros() - timeout_start >= ETP_PS2_COMMAND_DELAY) {
+                        timeout_state = 0;
+                        ++timeout_tries;
+                    }
+
+                    break;
+            }
         }
+        else {
+            CSerial.println("Fail");
+            timeout_tries = 0;
+            timeout_state = 0;
+            return 2;
+        }
+    } while(wait);
+
+    return 1;
+}
+
+uint8 TrackPad::elantech_command(uint16 command, uint8 *param, bool wait) {
+    do {
+        if (command_state < 3) {
+            switch(command_state) {
+                case 0:
+                    command = ETP_PS2_CUSTOM_COMMAND;
+                    break;
+
+                case 2:
+                    command = PS2_CMD_GETINFO;
+                    break;
+
+                default:
+                    break;
+            }
+
+            switch(ps2_command_timeout(command, param)) {
+                case 0:
+                    ++command_state;
+                    break;
+
+                case 2:
+                    return 2;
+
+                default:
+                    break;
+            }
+        }
+        else {
+            command_state = 0;
+            return 0;
+        }
+
     } while(wait);
 
     return 1;
@@ -102,29 +156,32 @@ uint8 write_reg_com(uint8 version, uint8 i) {
 }
 
 uint8 TrackPad::elantech_write_reg(uint8 reg, uint8 val, bool wait) {
-    uint8 com = write_reg_com(hw_version, write_reg_state);
     do {
         if(write_reg_state < command_num(hw_version)) {
+            uint8 com = write_reg_com(hw_version, write_reg_state);
+        
             switch(com) {
                 case ETP_REGISTER_REG:
-                    if(!ps2.command(reg)) {
-                        ++write_reg_state;
-                        com = write_reg_com(hw_version, write_reg_state);
-                    }
+                    com = reg;
                     break;
 
                 case ETP_REGISTER_VAL:
-                    if(!ps2.command(val)) {
-                        ++write_reg_state;
-                        com = write_reg_com(hw_version, write_reg_state);
-                    }
+                    com = val;
                     break;
 
                 default:
-                    if(!ps2.command(com)) {
-                        ++write_reg_state;
-                        com = write_reg_com(hw_version, write_reg_state);
-                    }
+                    break;
+            }
+
+            switch(ps2_command_timeout(com)) {
+                case 0:
+                    ++write_reg_state;
+                    break;
+
+                case 2:
+                    return 2;
+
+                default:
                     break;
             }
         }
@@ -255,7 +312,6 @@ void TrackPad::elantech_query_info() {
     CSerial.println(ic_version, HEX);
 
     CSerial.println("Capabilities");
-
     elantech_command(ETP_CAPABILITIES_QUERY, capabilities, true);
     printParam(capabilities);
 
@@ -333,10 +389,11 @@ void TrackPad::elantech_query_info() {
 
     CSerial.print("width\t");
     CSerial.println(width);
-    
 }
 
 void TrackPad::elantech_setup_ps2() {
+    
+    CSerial.println("Set absolute mode - Start");
 
     // set absolute mode
     switch(hw_version) {
@@ -347,13 +404,13 @@ void TrackPad::elantech_setup_ps2() {
             else{
                 reg_10 = 0x01;
             }
-            elantech_write_reg(0x10, reg_10, true);
+            CSerial.println(elantech_write_reg(0x10, reg_10, true));
 
             break;
 
         case 4:
             reg_07 = 0x01;
-            elantech_write_reg(0x07, reg_07, true);
+            CSerial.println(elantech_write_reg(0x07, reg_07, true));
 
             break;
 
@@ -361,6 +418,6 @@ void TrackPad::elantech_setup_ps2() {
             break;
     }
 
-
+    CSerial.println("Set absolute mode - Finish");
 
 }
