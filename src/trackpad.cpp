@@ -30,7 +30,7 @@ uint8 TrackPad::ps2_command_timeout(uint16 command, uint8 *param, bool wait) {
             switch(timeout_state) {
                 case 0: // start try
                     timeout_state = 1;
-                    timeout_start = micros();
+                    timeout_start = millis();
 
                 case 1: // ongoing try
                     if(!ps2.command(command, param)) {
@@ -39,18 +39,19 @@ uint8 TrackPad::ps2_command_timeout(uint16 command, uint8 *param, bool wait) {
                         return 0;
                     }
 
-                    if(micros() - timeout_start < ETP_PS2_COMMAND_TIMEOUT) {
+                    if(millis() - timeout_start < ETP_PS2_COMMAND_TIMEOUT) {
                         break;
                     }
 
                     CSerial.print("Retry ");
                     CSerial.println(timeout_tries + 1);
 
+                    ps2.setIdle();
                     timeout_state = 2;
-                    timeout_start = micros();
+                    timeout_start = millis();
 
                 case 2: // delay
-                    if(micros() - timeout_start >= ETP_PS2_COMMAND_DELAY) {
+                    if(millis() - timeout_start >= ETP_PS2_COMMAND_DELAY) {
                         timeout_state = 0;
                         ++timeout_tries;
                     }
@@ -85,12 +86,15 @@ uint8 TrackPad::elantech_command(uint16 command, uint8 *param, bool wait) {
                     break;
             }
 
-            switch(ps2_command_timeout(command, param)) {
+            //CSerial.print(command, HEX);
+            //switch(ps2_command_timeout(command, param)) {
+            switch(ps2.command(command, param)) {
                 case 0:
                     ++command_state;
                     break;
 
                 case 2:
+                    command_state = 0;
                     return 2;
 
                 default:
@@ -173,12 +177,14 @@ uint8 TrackPad::elantech_write_reg(uint8 reg, uint8 val, bool wait) {
                     break;
             }
 
+            CSerial.println(com, HEX);
             switch(ps2_command_timeout(com)) {
                 case 0:
                     ++write_reg_state;
                     break;
 
                 case 2:
+                    write_reg_state = 0;
                     return 2;
 
                 default:
