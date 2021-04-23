@@ -58,7 +58,7 @@ class TrackPad
 
     void initialize(uint8 clockPin, uint8 dataPin);
 
-    uint8 elantech_command(uint16 command, uint8 *param, bool wait = false);
+    uint8 elantech_command(uint8 command, uint8 *param, bool wait = false);
     uint8 elantech_write_reg(uint8 reg, uint8 val, bool wait = false);
     
     uint8 ps2_command_timeout(uint16 command, uint8 *param = NULL, bool wait = false);

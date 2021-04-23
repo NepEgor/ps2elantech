@@ -70,25 +70,26 @@ uint8 TrackPad::ps2_command_timeout(uint16 command, uint8 *param, bool wait) {
     return 1;
 }
 
-uint8 TrackPad::elantech_command(uint16 command, uint8 *param, bool wait) {
+uint8 TrackPad::elantech_command(uint8 command, uint8 *param, bool wait) {
+    uint16 com;
     do {
         if (command_state < 3) {
             switch(command_state) {
                 case 0:
-                    command = ETP_PS2_CUSTOM_COMMAND;
+                    com = ETP_PS2_CUSTOM_COMMAND;
                     break;
 
                 case 2:
-                    command = PS2_CMD_GETINFO;
+                    com = PS2_CMD_GETINFO;
                     break;
 
                 default:
+                    com = command;
                     break;
             }
 
-            //CSerial.print(command, HEX);
-            //switch(ps2_command_timeout(command, param)) {
-            switch(ps2.command(command, param)) {
+            //switch(ps2_command_timeout(com, param)) {
+            switch(ps2.command(com, param)) {
                 case 0:
                     ++command_state;
                     break;
