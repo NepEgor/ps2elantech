@@ -3,6 +3,7 @@ Ultimate goal is to interface with Elantech trackpads.
 
 Hardware:
 * stm32f103c8t6 blue pill
+* stm32f411ceu6 WeAct Studio black pill
 * elan 33200v-3600
 * elan 33059v-3000
 
