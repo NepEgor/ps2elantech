@@ -49,6 +49,7 @@ class TrackPad
     uint8_t command_state;
 
     #define packet_size 6
+    uint8_t packet[packet_size];
 
     void elantech_detect();
     void elantech_query_info();
@@ -64,6 +65,8 @@ class TrackPad
     uint8_t elantech_write_reg(uint8_t reg, uint8_t val, bool wait = false);
     
     uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
+
+    uint8_t poll();
 
     void inline int_on_clock(){
         ps2.int_on_clock();

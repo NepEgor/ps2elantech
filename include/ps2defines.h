@@ -10,7 +10,7 @@
 #define PS2_CMD_GETINFO 	0x03e9
 #define PS2_CMD_SETSTREAM	0x00ea
 #define PS2_CMD_SETPOLL	    0x00f0
-#define PS2_CMD_POLL	    0x00eb	// caller sets number of bytes to receive
+#define PS2_CMD_POLL	    0x06eb	// 6 - packet size for elan fw > 1
 #define PS2_CMD_RESET_WRAP	0x00ec
 #define PS2_CMD_GETID	    0x01f2 // 0x02f2 in linux driver; my device returns 1 byte only
 #define PS2_CMD_SETRATE	    0x10f3

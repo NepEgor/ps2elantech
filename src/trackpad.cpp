@@ -231,6 +231,7 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     ps2.command(PS2_CMD_SETSCALE11, NULL, true);
 
     ps2.command(PS2_CMD_ENABLE, NULL, true);
+
 }
 
 /*  
@@ -440,4 +441,14 @@ void TrackPad::elantech_setup_ps2() {
 
     CSerial.println("Set absolute mode - Finish");
 
+}
+
+
+uint8_t TrackPad::poll() {
+    if(!ps2.command(PS2_CMD_POLL, packet)){
+        printParam(packet, packet_size);
+        Serial.println();
+    }
+
+    return 0;
 }

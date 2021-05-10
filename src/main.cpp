@@ -40,15 +40,7 @@ void setup() {
 }
 
 void loop() {
-/*    uint8 param[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-
-    if(!ps2.command(0x03EB, param)){
-        for(uint8 i = 0; i < 3; ++i) {
-            CSerial.println(param[i], BIN);
-        }
-    }
-
-    delay(5);*/
+    trackpad.poll();
 }
 
 void int_on_clock_1() {
