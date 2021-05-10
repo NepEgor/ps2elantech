@@ -12,7 +12,7 @@ void low(int pin) {
     digitalWrite(pin, LOW);
 }
 
-void PS2::initialize(uint8 clockPin, uint8 dataPin) {
+void PS2::initialize(uint8_t clockPin, uint8_t dataPin) {
     this->clockPin = clockPin;
     this->dataPin = dataPin;
 
@@ -42,11 +42,11 @@ void PS2::setIdle() {
     state = IDLE;
 }
 
-uint8 PS2::getIdle() {
+uint8_t PS2::getIdle() {
     return state == IDLE;
 }
 
-uint8 PS2::sliced_command(uint16 command, bool wait) {
+uint8_t PS2::sliced_command(uint16_t command, bool wait) {
     do {
         if(sliced_shift < 0) {
             sliced_shift = 8;
@@ -69,7 +69,7 @@ uint8 PS2::sliced_command(uint16 command, bool wait) {
     return 1;
 }
 
-uint8 PS2::command(uint16 command, uint8 *param, bool wait) {
+uint8_t PS2::command(uint16_t command, uint8_t *param, bool wait) {
     do {
         switch(state) {
             case IDLE:
@@ -134,7 +134,7 @@ uint8 PS2::command(uint16 command, uint8 *param, bool wait) {
     return 1;
 }
 
-uint8 PS2::readByte(uint8 &data) {
+uint8_t PS2::readByte(uint8_t &data) {
     switch(state) {
         case IDLE:
             state = READ;
@@ -158,7 +158,7 @@ uint8 PS2::readByte(uint8 &data) {
     return 1;
 }
 
-uint8 PS2::writeByte(uint8 data) {
+uint8_t PS2::writeByte(uint8_t data) {
     switch(state) {
         case IDLE:
             state = WRITE_START;
@@ -234,7 +234,7 @@ void PS2::int_on_clock() {
 }
 
 void PS2::int_read() {
-    uint8 bit = digitalRead(dataPin);
+    uint8_t bit = digitalRead(dataPin);
 
     // 0 - start bit
     // 1-8 - data
@@ -275,7 +275,7 @@ void PS2::int_read() {
 }
 
 void PS2::int_write() {
-    uint8 bit = 0;
+    uint8_t bit = 0;
 
     // start bit sent in writeByte()
     // 0-7 - data

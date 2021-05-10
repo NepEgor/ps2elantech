@@ -2,8 +2,8 @@
 
 #include "ps2defines.h"
 
-void printParam(uint8 *param, uint8 len = 3) {
-    for(uint8 i = 0; i < len; ++i) {
+void printParam(uint8_t *param, uint8_t len = 3) {
+    for(uint8_t i = 0; i < len; ++i) {
         CSerial.println(param[i], BIN);
     }
 }
@@ -24,7 +24,7 @@ TrackPad::TrackPad() {
     timeout_state = 0;
 }
 
-uint8 TrackPad::ps2_command_timeout(uint16 command, uint8 *param, bool wait) {
+uint8_t TrackPad::ps2_command_timeout(uint16_t command, uint8_t *param, bool wait) {
     do {
         if(timeout_tries < ETP_PS2_COMMAND_TRIES) {
             switch(timeout_state) {
@@ -70,8 +70,8 @@ uint8 TrackPad::ps2_command_timeout(uint16 command, uint8 *param, bool wait) {
     return 1;
 }
 
-uint8 TrackPad::elantech_command(uint8 command, uint8 *param, bool wait) {
-    uint16 com;
+uint8_t TrackPad::elantech_command(uint8_t command, uint8_t *param, bool wait) {
+    uint16_t com;
     do {
         if (command_state < 3) {
             switch(command_state) {
@@ -88,8 +88,8 @@ uint8 TrackPad::elantech_command(uint8 command, uint8 *param, bool wait) {
                     break;
             }
 
-            //switch(ps2_command_timeout(com, param)) {
-            switch(ps2.command(com, param)) {
+            switch(ps2_command_timeout(com, param)) {
+            //switch(ps2.command(com, param)) {
                 case 0:
                     ++command_state;
                     break;
@@ -112,7 +112,7 @@ uint8 TrackPad::elantech_command(uint8 command, uint8 *param, bool wait) {
     return 1;
 }
 
-const uint8 write_register_commands_v3[7] = {
+const uint8_t write_register_commands_v3[7] = {
     ETP_PS2_CUSTOM_COMMAND,
     ETP_REGISTER_READWRITE,
     ETP_PS2_CUSTOM_COMMAND,
@@ -122,7 +122,7 @@ const uint8 write_register_commands_v3[7] = {
     PS2_CMD_SETSCALE11
 };
 
-const uint8 write_register_commands_v4[9] = {
+const uint8_t write_register_commands_v4[9] = {
     ETP_PS2_CUSTOM_COMMAND,
     ETP_REGISTER_READWRITE,
     ETP_PS2_CUSTOM_COMMAND,
@@ -134,7 +134,7 @@ const uint8 write_register_commands_v4[9] = {
     PS2_CMD_SETSCALE11
 };
 
-uint8 command_num(uint8 version) {
+uint8_t command_num(uint8_t version) {
     switch(version){
         case 3:
             return 7;
@@ -147,7 +147,7 @@ uint8 command_num(uint8 version) {
     }
 }
 
-uint8 write_reg_com(uint8 version, uint8 i) {
+uint8_t write_reg_com(uint8_t version, uint8_t i) {
     switch(version){
         case 3:
             return write_register_commands_v3[i];
@@ -160,10 +160,10 @@ uint8 write_reg_com(uint8 version, uint8 i) {
     }
 }
 
-uint8 TrackPad::elantech_write_reg(uint8 reg, uint8 val, bool wait) {
+uint8_t TrackPad::elantech_write_reg(uint8_t reg, uint8_t val, bool wait) {
     do {
         if(write_reg_state < command_num(hw_version)) {
-            uint8 com = write_reg_com(hw_version, write_reg_state);
+            uint8_t com = write_reg_com(hw_version, write_reg_state);
         
             switch(com) {
                 case ETP_REGISTER_REG:
@@ -202,10 +202,10 @@ uint8 TrackPad::elantech_write_reg(uint8 reg, uint8 val, bool wait) {
     return 1;
 }
 
-void TrackPad::initialize(uint8 clockPin, uint8 dataPin) {
+void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     ps2.initialize(clockPin, dataPin);
 
-    uint8 param[3];
+    uint8_t param[3];
 
     CSerial.println("PS2_CMD_RESET_BAT");
     ps2.command(PS2_CMD_RESET_BAT, param, true);
@@ -259,7 +259,7 @@ static bool elantech_is_signature_valid(const unsigned char *param)
 */
 
 void TrackPad::elantech_detect() {
-    uint8 param[3];
+    uint8_t param[3];
 
     CSerial.println("Elantech magic knock");
 
@@ -275,7 +275,7 @@ void TrackPad::elantech_detect() {
 }
 
 void TrackPad::elantech_query_info() {
-    uint8 param[3];
+    uint8_t param[3];
 
     CSerial.println("Firmware");
 
@@ -403,7 +403,7 @@ void TrackPad::elantech_setup_ps2() {
     CSerial.println("Set absolute mode - Start");
 
     // set absolute mode
-    switch(hw_version) {
+    /*switch(hw_version) {
         case 3:
             if(true) { // set_hw_resolution always true in linux kernel?
                 reg_10 = 0x0b;
@@ -423,7 +423,17 @@ void TrackPad::elantech_setup_ps2() {
 
         default: // No plans on supporting hw 1 and 2
             break;
-    }
+    }*/
+
+    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
+    ps2_command_timeout(ETP_REGISTER_READWRITE, NULL, true);
+    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
+    ps2_command_timeout(0x07, NULL, true);
+    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
+    ps2_command_timeout(ETP_REGISTER_READWRITE, NULL, true);
+    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
+    ps2_command_timeout(0x01, NULL, true);
+    ps2_command_timeout(PS2_CMD_SETSCALE11, NULL, true);
 
     CSerial.println("Set absolute mode - Finish");
 

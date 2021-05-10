@@ -2,8 +2,8 @@
 
 #include "debug.h"
 
-#include <USBComposite.h>
-USBCompositeSerial CSerial;
+//#include <USBComposite.h>
+//USBCompositeSerial CSerial;
 
 /*
 const uint8 reportDescription[] = {
@@ -24,7 +24,7 @@ void int_on_clock_1();
 void setup() {
     CSerial.begin(9600);
     //HID.begin(CSerial, reportDescription, sizeof(reportDescription));
-    while(!USBComposite);
+    //while(!USBComposite);
 
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, HIGH);

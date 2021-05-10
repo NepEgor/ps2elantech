@@ -17,7 +17,7 @@ Queue::Queue()
 }
 
 // return 1 if full
-uint8 Queue::push(queue_elem elem)
+uint8_t Queue::push(queue_elem elem)
 {
     if (size < QCAPACITY)
     {
@@ -35,7 +35,7 @@ uint8 Queue::push(queue_elem elem)
 }
 
 // returns 1 if empty
-uint8 Queue::pull(queue_elem &elem)
+uint8_t Queue::pull(queue_elem &elem)
 {
     if (size > 0)
     {

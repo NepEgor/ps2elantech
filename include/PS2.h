@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 
-enum State: uint8
+enum State: uint8_t
 {
     IDLE,
     WRITE_START,
@@ -21,32 +21,32 @@ class PS2
 {
     public:
     
-    uint8 clockPin;
-    uint8 dataPin;
+    uint8_t clockPin;
+    uint8_t dataPin;
 
     State state;
 
     Queue queue;
 
     // interupt variables
-    volatile uint8 raw;
-    volatile uint8 shift;
-    volatile uint8 parity;
+    volatile uint8_t raw;
+    volatile uint8_t shift;
+    volatile uint8_t parity;
 
     // delay for holding clock before sending byte
-    uint32 start;
-    uint16 interval;
+    uint32_t start;
+    uint16_t interval;
 
     // command variables
-    uint8 left_bytes;
-    uint8 send_bytes;
-    uint8 recv_bytes;
-    uint8 buf;
+    uint8_t left_bytes;
+    uint8_t send_bytes;
+    uint8_t recv_bytes;
+    uint8_t buf;
     bool handleACK;
 
     // sliced_command variables
-    int8 sliced_shift;
-    uint8 command_part;
+    int8_t sliced_shift;
+    uint8_t command_part;
 
     // interupt handlers
     void int_read();
@@ -56,14 +56,14 @@ class PS2
 
     PS2() {}
 
-    void initialize(uint8 clockPin, uint8 dataPin);
+    void initialize(uint8_t clockPin, uint8_t dataPin);
     
     State getState();
     void setIdle();
-    uint8 getIdle();
+    uint8_t getIdle();
 
-    uint8 readByte(uint8 &data);
-    uint8 writeByte(uint8 data);
+    uint8_t readByte(uint8_t &data);
+    uint8_t writeByte(uint8_t data);
 
     // write command byte
     // command format 0xARCC
@@ -71,14 +71,14 @@ class PS2
     // R - number of returns
     // CC - command
     // command args and returns in params array
-    uint8 command(uint16 command, uint8 *param = NULL, bool wait = false);
+    uint8_t command(uint16_t command, uint8_t *param = NULL, bool wait = false);
     
     // sliced_command() sends an extended PS/2 command to the mouse
     // using sliced syntax, understood by advanced devices, such as Logitech
     // or Synaptics touchpads. The command is encoded as:
     // 0xE6 0xE8 rr 0xE8 ss 0xE8 tt 0xE8 uu where (rr*64)+(ss*16)+(tt*4)+uu
     // is the command.
-    uint8 sliced_command(uint16 command, bool wait = false);
+    uint8_t sliced_command(uint16_t command, bool wait = false);
 
     void int_on_clock();
 };

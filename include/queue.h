@@ -5,22 +5,22 @@
 
 #include <Arduino.h>
 
-typedef uint8 queue_elem;
+typedef uint8_t queue_elem;
 
 class Queue
 {
     private:
 
     queue_elem container[QCAPACITY];
-    uint8 head;
-    uint8 tail;
-    uint8 size;
+    uint8_t head;
+    uint8_t tail;
+    uint8_t size;
 
     public:
 
     Queue();
-    uint8 push(queue_elem elem);
-    uint8 pull(queue_elem &elem);
+    uint8_t push(queue_elem elem);
+    uint8_t pull(queue_elem &elem);
 
 };
 
