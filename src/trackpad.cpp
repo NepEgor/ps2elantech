@@ -88,8 +88,8 @@ uint8_t TrackPad::elantech_command(uint8_t command, uint8_t *param, bool wait) {
                     break;
             }
 
-            switch(ps2_command_timeout(com, param)) {
-            //switch(ps2.command(com, param)) {
+            uint8_t ret = ps2_command_timeout(com, param, wait);
+            switch(ret) {
                 case 0:
                     ++command_state;
                     break;
@@ -178,8 +178,8 @@ uint8_t TrackPad::elantech_write_reg(uint8_t reg, uint8_t val, bool wait) {
                     break;
             }
 
-            CSerial.println(com, HEX);
-            switch(ps2_command_timeout(com)) {
+            uint8_t ret = ps2_command_timeout(com, NULL, wait);
+            switch(ret) {
                 case 0:
                     ++write_reg_state;
                     break;
@@ -403,7 +403,7 @@ void TrackPad::elantech_setup_ps2() {
     CSerial.println("Set absolute mode - Start");
 
     // set absolute mode
-    /*switch(hw_version) {
+    switch(hw_version) {
         case 3:
             if(true) { // set_hw_resolution always true in linux kernel?
                 reg_10 = 0x0b;
@@ -423,18 +423,8 @@ void TrackPad::elantech_setup_ps2() {
 
         default: // No plans on supporting hw 1 and 2
             break;
-    }*/
-
-    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
-    ps2_command_timeout(ETP_REGISTER_READWRITE, NULL, true);
-    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
-    ps2_command_timeout(0x07, NULL, true);
-    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
-    ps2_command_timeout(ETP_REGISTER_READWRITE, NULL, true);
-    ps2_command_timeout(ETP_PS2_CUSTOM_COMMAND, NULL, true);
-    ps2_command_timeout(0x01, NULL, true);
-    ps2_command_timeout(PS2_CMD_SETSCALE11, NULL, true);
-
+    }
+    
     CSerial.println("Set absolute mode - Finish");
 
 }
