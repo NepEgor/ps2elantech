@@ -221,6 +221,16 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     elantech_detect();
     elantech_query_info();
     elantech_setup_ps2();
+
+    param[0] = 100;
+    ps2.command(PS2_CMD_SETRATE, param, true);
+
+    param[0] = 200;
+    ps2.command(PS2_CMD_SETRES, param, true);
+
+    ps2.command(PS2_CMD_SETSCALE11, NULL, true);
+
+    ps2.command(PS2_CMD_ENABLE, NULL, true);
 }
 
 /*  
@@ -425,6 +435,9 @@ void TrackPad::elantech_setup_ps2() {
             break;
     }
     
+    // TODO for hw 3 read back reg 0x10
+    // hw 4 do not need to read
+
     CSerial.println("Set absolute mode - Finish");
 
 }

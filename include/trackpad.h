@@ -48,6 +48,8 @@ class TrackPad
 
     uint8_t command_state;
 
+    #define packet_size 6
+
     void elantech_detect();
     void elantech_query_info();
     void elantech_setup_ps2();
