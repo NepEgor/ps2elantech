@@ -2,7 +2,7 @@
 
 #include "ps2defines.h"
 
-void printParam(uint8_t *param, uint8_t len = 3) {
+void printParam(uint8_t *param, uint8_t len) {
     for(uint8_t i = 0; i < len; ++i) {
         Serial.println(param[i], BIN);
     }
@@ -441,14 +441,4 @@ void TrackPad::elantech_setup_ps2() {
 
     Serial.println("Set absolute mode - Finish");
 
-}
-
-
-uint8_t TrackPad::poll() {
-    if(!ps2.command(PS2_CMD_POLL, packet)){
-        printParam(packet, packet_size);
-        Serial.println();
-    }
-
-    return 0;
 }

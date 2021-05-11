@@ -5,6 +5,8 @@
 
 #include "PS2.h"
 
+void printParam(uint8_t *param, uint8_t len = 3);
+
 // Elantech trackpad
 class TrackPad
 {
