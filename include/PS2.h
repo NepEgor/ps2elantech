@@ -21,8 +21,8 @@ class PS2
 {
     public:
     
-    uint8_t clockPin;
-    uint8_t dataPin;
+    uint32_t clockPin;
+    uint32_t dataPin;
 
     State state;
 
@@ -56,7 +56,7 @@ class PS2
 
     PS2() {}
 
-    void initialize(uint8_t clockPin, uint8_t dataPin);
+    void initialize(uint32_t clockPin, uint32_t dataPin);
     
     State getState();
     void setIdle();

@@ -48,7 +48,7 @@ class TrackPad
 
     uint8_t command_state;
 
-    #define packet_size 6
+    static const uint8_t packet_size = 6;
     uint8_t packet[packet_size];
 
     void elantech_detect();

@@ -1,14 +1,16 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#define QCAPACITY 8
-
 #include <Arduino.h>
 
 typedef uint8_t queue_elem;
 
 class Queue
 {
+    public:
+
+    static const uint8_t QCAPACITY = 8;
+
     private:
 
     queue_elem container[QCAPACITY];

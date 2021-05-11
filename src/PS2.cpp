@@ -12,7 +12,7 @@ void low(int pin) {
     digitalWrite(pin, LOW);
 }
 
-void PS2::initialize(uint8_t clockPin, uint8_t dataPin) {
+void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     this->clockPin = clockPin;
     this->dataPin = dataPin;
 

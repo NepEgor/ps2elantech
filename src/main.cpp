@@ -2,41 +2,27 @@
 
 #include "debug.h"
 
-//#include <USBComposite.h>
-//USBCompositeSerial CSerial;
-
-/*
-const uint8 reportDescription[] = {
-   HID_MOUSE_REPORT_DESCRIPTOR(),
-};
-
-USBHID HID;
-HIDMouse hid_mouse(HID);
-*/
-
 #include "trackpad.h"
-#define DATA_PIN PB9
-#define CLOCK_PIN PB8
+const uint32_t DATA_PIN  = PB9;
+const uint32_t CLOCK_PIN = PB8;
 TrackPad trackpad;
 
 void int_on_clock_1();
 
 void setup() {
-    CSerial.begin(9600);
-    //HID.begin(CSerial, reportDescription, sizeof(reportDescription));
-    //while(!USBComposite);
-
+    Serial.begin(9600);
+    
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, HIGH);
 
     delay(1500);
-    CSerial.println("setup");
+    Serial.println("setup");
 
     attachInterrupt(CLOCK_PIN, int_on_clock_1, FALLING);
 
     trackpad.initialize(CLOCK_PIN, DATA_PIN);
 
-    CSerial.println("setup end");
+    Serial.println("setup end");
 }
 
 void loop() {
