@@ -17,8 +17,10 @@ class TrackPad
     uint8_t  hw_version;
     uint32_t fw_version;
     uint8_t  ic_version;
+    bool crc_enabled;
 
     uint8_t capabilities[3];
+    uint8_t samples[3];
 
     uint32_t x_res;
     uint32_t y_res;
@@ -51,6 +53,7 @@ class TrackPad
     uint8_t command_state;
 
     static const uint8_t packet_size = 6;
+    uint8_t packet_type;
     uint8_t packet[packet_size];
 
     void elantech_detect();
@@ -69,6 +72,11 @@ class TrackPad
     uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
 
     uint8_t poll();
+
+    uint8_t elantech_packet_check_v4();
+    void process_packet_status_v4();
+    void process_packet_head_v4();
+    void process_packet_motion_v4();
 
     void inline int_on_clock(){
         ps2.int_on_clock();

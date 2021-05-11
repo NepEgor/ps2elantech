@@ -320,6 +320,8 @@ void TrackPad::elantech_query_info() {
 		}
 	}
 
+    crc_enabled = (fw_version & 0x4000) == 0x4000;
+
     Serial.print("fw\t");
     Serial.println(fw_version, HEX);
 
@@ -329,13 +331,16 @@ void TrackPad::elantech_query_info() {
     Serial.print("ic\t");
     Serial.println(ic_version, HEX);
 
+    Serial.print("crc\t");
+    Serial.println(crc_enabled, HEX);
+
     Serial.println("Capabilities");
     elantech_command(ETP_CAPABILITIES_QUERY, capabilities, true);
     printParam(capabilities);
 
     Serial.println("Samples");
-    elantech_command(ETP_SAMPLE_QUERY, param, true);
-    printParam(param);
+    elantech_command(ETP_SAMPLE_QUERY, samples, true);
+    printParam(samples);
 
     Serial.println("Resolution");
 
