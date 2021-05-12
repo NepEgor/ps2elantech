@@ -27,6 +27,8 @@ void setup() {
 
 void loop() {
     trackpad.poll();
+
+    //delay(50);
 }
 
 void int_on_clock_1() {

@@ -19,7 +19,7 @@ enum State: uint8_t
 
 class PS2
 {
-    public:
+    private:
     
     uint32_t clockPin;
     uint32_t dataPin;
@@ -63,6 +63,9 @@ class PS2
     uint8_t getIdle();
 
     uint8_t readByte(uint8_t &data);
+
+    uint8_t readPacket(uint8_t *packet, uint8_t size);
+
     uint8_t writeByte(uint8_t data);
 
     // write command byte

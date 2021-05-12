@@ -231,7 +231,6 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     ps2.command(PS2_CMD_SETSCALE11, NULL, true);
 
     ps2.command(PS2_CMD_ENABLE, NULL, true);
-
 }
 
 /*  

@@ -69,6 +69,36 @@ uint8_t PS2::sliced_command(uint16_t command, bool wait) {
     return 1;
 }
 
+uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
+    switch(state) {
+        case IDLE:
+            left_bytes = 0;
+        
+        case READ_FINISH:
+            if(!readByte(buf)) {
+                packet[left_bytes] = buf;
+
+                ++left_bytes;
+                
+                if(left_bytes < size) {
+                    state = IDLE;
+                    readByte(buf);
+                }
+                else {
+                    setIdle();
+                    left_bytes = 0;
+                    return 0;
+                }
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    return 1;
+}
+
 uint8_t PS2::command(uint16_t command, uint8_t *param, bool wait) {
     do {
         switch(state) {

@@ -17,8 +17,8 @@ enum PacketType: uint8_t
 uint8_t TrackPad::elantech_packet_check_v4() {
     packet_type = packet[3] & 0x03;
 
-    bool sanity_check;
-
+    bool sanity_check = true;
+    
     if(crc_enabled) {
 		sanity_check = ((packet[3] & 0x08) == 0x00);
     }
@@ -30,17 +30,11 @@ uint8_t TrackPad::elantech_packet_check_v4() {
 		sanity_check = ((packet[0] & 0x08) == 0x00 &&
 				        (packet[3] & 0x1c) == 0x10);
     }
-
-    //Serial.print("Sanity: ");
-    //Serial.println(sanity_check);
-
+    
     if (!sanity_check) {
         packet_type = PACKET_UNKNOWN;
     }
     else {
-        //Serial.print("Type Raw: ");
-        //Serial.println(packet_type);
-
         switch (packet_type) {
             case 0:
                 packet_type = PACKET_V4_STATUS;
@@ -58,9 +52,6 @@ uint8_t TrackPad::elantech_packet_check_v4() {
                 packet_type = PACKET_UNKNOWN;
                 break;
         }
-
-        //Serial.print("Type Enum: ");
-        //Serial.println(packet_type);
     }
 
 	return packet_type;
@@ -69,11 +60,32 @@ uint8_t TrackPad::elantech_packet_check_v4() {
 void TrackPad::process_packet_status_v4() {
     Serial.println("Status");
 
+    uint8_t fingers = packet[1] & 0x1f;
+    Serial.println(fingers, BIN);
 }
 
 void TrackPad::process_packet_head_v4() {
     Serial.println("Head");
 
+    int8_t id = ((packet[3] & 0xe0) >> 5) - 1;
+    uint8_t pres, traces;
+
+    int32_t x = ((packet[1] & 0x0f) << 8) | packet[2];
+	int32_t y = y_max - (((packet[4] & 0x0f) << 8) | packet[5]);
+
+	pres = (packet[1] & 0xf0) | ((packet[4] & 0xf0) >> 4);
+	traces = (packet[0] & 0xf0) >> 4;
+
+    Serial.print("f ");
+    Serial.print(id);
+    Serial.print("  x ");
+    Serial.print(x);
+    Serial.print("  y ");
+    Serial.print(y);
+    Serial.print("  p ");
+    Serial.print(pres);
+    Serial.print("  t ");
+    Serial.println(traces);
 }
 
 void TrackPad::process_packet_motion_v4() {
@@ -82,14 +94,20 @@ void TrackPad::process_packet_motion_v4() {
 }
 
 uint8_t TrackPad::poll() {
-    if(!ps2.command(PS2_CMD_POLL, packet)) {
+    if(!ps2.readPacket(packet, packet_size)) {
+
+        //printParam(packet, packet_size);
+
         elantech_packet_check_v4();
         switch(packet_type) {
-            case PACKET_TRACKPOINT:
             case PACKET_UNKNOWN:
                 Serial.println("Bad Data");
                 break;
             
+            case PACKET_TRACKPOINT:
+                Serial.println("Trackpoint");
+                break;
+
             case PACKET_V4_STATUS:
                 process_packet_status_v4();
                 break;
