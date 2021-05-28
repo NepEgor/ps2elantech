@@ -12,20 +12,20 @@ bool queue_full(struct queue *q)
 */
 Queue::Queue()
 {
-    head = QCAPACITY - 1;
-    tail = QCAPACITY - 1;
+    head = 0;
+    tail = 0;
 }
 
-// return 1 if full
+// returns 1 if full
 uint8_t Queue::push(queue_elem elem)
 {
     if (size < QCAPACITY)
     {
-        container[head--] = elem;
+        container[head++] = elem;
         size++;
-        if (head < 0)
+        if (head >= QCAPACITY)
         {
-        head = QCAPACITY-1;
+            head = 0;
         }
 
         return 0;
@@ -39,11 +39,11 @@ uint8_t Queue::pull(queue_elem &elem)
 {
     if (size > 0)
     {
-        elem = container[tail--];
+        elem = container[tail++];
         size--;
-        if (tail < 0)
+        if (tail >= QCAPACITY)
         {
-        tail = QCAPACITY-1;
+            tail = 0;
         }
 
         return 0;
