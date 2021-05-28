@@ -85,7 +85,7 @@ uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
                     readByte(buf);
                 }
                 else {
-                    setIdle();
+                    state = IDLE;//setIdle();
                     left_bytes = 0;
                     return 0;
                 }

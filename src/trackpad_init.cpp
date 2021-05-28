@@ -222,7 +222,7 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     elantech_query_info();
     elantech_setup_ps2();
 
-    param[0] = 100;
+    param[0] = 10;
     ps2.command(PS2_CMD_SETRATE, param, true);
 
     param[0] = 200;

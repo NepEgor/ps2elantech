@@ -7,6 +7,12 @@
 
 void printParam(uint8_t *param, uint8_t len = 3);
 
+struct Position
+{
+    int32_t x;
+    int32_t y;
+};
+
 // Elantech trackpad
 class TrackPad
 {
@@ -55,6 +61,10 @@ class TrackPad
     static const uint8_t packet_size = 6;
     uint8_t packet_type;
     uint8_t packet[packet_size];
+
+    Position fingers[5];
+
+    uint32_t packet_i = 1;
 
     void elantech_detect();
     void elantech_query_info();

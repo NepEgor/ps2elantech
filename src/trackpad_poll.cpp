@@ -58,54 +58,93 @@ uint8_t TrackPad::elantech_packet_check_v4() {
 }
 
 void TrackPad::process_packet_status_v4() {
-    Serial.println("Status");
+    //Serial.println("Status");
 
     uint8_t fingers = packet[1] & 0x1f;
-    Serial.println(fingers, BIN);
+    //Serial.println(fingers, BIN);
 }
 
 void TrackPad::process_packet_head_v4() {
-    Serial.println("Head");
+    //Serial.println("Head");
 
     int8_t id = ((packet[3] & 0xe0) >> 5) - 1;
+    if(id < 0) return;
+    
     uint8_t pres, traces;
 
-    int32_t x = ((packet[1] & 0x0f) << 8) | packet[2];
-	int32_t y = y_max - (((packet[4] & 0x0f) << 8) | packet[5]);
+    fingers[id].x = ((packet[1] & 0x0f) << 8) | packet[2];
+	fingers[id].y = y_max - (((packet[4] & 0x0f) << 8) | packet[5]);
 
 	pres = (packet[1] & 0xf0) | ((packet[4] & 0xf0) >> 4);
 	traces = (packet[0] & 0xf0) >> 4;
 
-    Serial.print("f ");
-    Serial.print(id);
+    //Serial.print("f ");
+    //Serial.print(id);
     Serial.print("  x ");
-    Serial.print(x);
+    Serial.print(fingers[id].x);
     Serial.print("  y ");
-    Serial.print(y);
-    Serial.print("  p ");
-    Serial.print(pres);
-    Serial.print("  t ");
-    Serial.println(traces);
+    Serial.println(fingers[id].y);
+    //Serial.print("  p ");
+    //Serial.print(pres);
+    //Serial.print("  t ");
+    //Serial.println(traces * width);
 }
 
 void TrackPad::process_packet_motion_v4() {
-    Serial.println("Motion");
+    //Serial.println("Motion");
 
+    int16_t id = ((packet[0] & 0xe0) >> 5) - 1;
+    if (id < 0) return;
+
+    int16_t sid = ((packet[3] & 0xe0) >> 5) - 1;
+    int16_t weight = (packet[0] & 0x10) ? 5 : 1;
+
+    int16_t delta_x1 = (int8_t)packet[1];
+	int16_t delta_y1 = (int8_t)packet[2];
+	int16_t delta_x2 = (int8_t)packet[4];
+	int16_t delta_y2 = (int8_t)packet[5];
+
+    fingers[id].x += delta_x1 * weight;
+    fingers[id].y += delta_y1 * weight;
+
+    //Serial.print("f1 ");
+    //Serial.print(id);
+    Serial.print("  x ");
+    Serial.print(fingers[id].x);
+    Serial.print("  y ");
+    Serial.println(fingers[id].y);
+
+    if(sid >= 0) {
+        fingers[sid].x += delta_x2 * weight;
+        fingers[sid].y += delta_y2 * weight;
+        /*
+        Serial.print("f2 ");
+        Serial.print(sid);
+        Serial.print("  x2 ");
+        Serial.print(fingers[sid].x);
+        Serial.print("  y2 ");
+        Serial.println(fingers[sid].y);*/
+    }
 }
 
 uint8_t TrackPad::poll() {
     if(!ps2.readPacket(packet, packet_size)) {
+    //if(!ps2.readByte(packet[0])) {
+        //ps2.setIdle();
+        
+        packet_i += 1;
+        //Serial.println(packet_i);
 
         //printParam(packet, packet_size);
 
         elantech_packet_check_v4();
         switch(packet_type) {
             case PACKET_UNKNOWN:
-                Serial.println("Bad Data");
+                //Serial.println("Bad Data");
                 break;
             
             case PACKET_TRACKPOINT:
-                Serial.println("Trackpoint");
+                //Serial.println("Trackpoint");
                 break;
 
             case PACKET_V4_STATUS:
@@ -126,7 +165,7 @@ uint8_t TrackPad::poll() {
                 break;
         }
 
-        Serial.println();
+        //Serial.println();
     }
 
     return 0;

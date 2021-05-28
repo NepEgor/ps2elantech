@@ -9,7 +9,7 @@ class Queue
 {
     public:
 
-    static const uint8_t QCAPACITY = 8;
+    static const uint8_t QCAPACITY = 12;
 
     private:
 
