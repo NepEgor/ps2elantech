@@ -20,244 +20,50 @@ void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     shift = 0;
     parity = 1;
 
-    start = 0;
-    interval = 0;
-
-    sliced_shift = 8;
-
-    handleACK = false;
-
     low(clockPin);
     low(dataPin);
 
-    setIdle();
+    state = READ;
 }
 
-State PS2::getState() {
-    return state;
+void PS2::test() {
+
 }
 
-void PS2::setIdle() {
-    low(clockPin);
-    state = IDLE;
-}
-
-uint8_t PS2::getIdle() {
-    return state == IDLE;
-}
-
-uint8_t PS2::sliced_command(uint16_t command, bool wait) {
-    do {
-        if(sliced_shift < 0) {
-            sliced_shift = 8;
-            return 0;
-        }
-        else if(sliced_shift == 8) {
-            if(!this->command(PS2_CMD_SETSCALE11)) {
-                sliced_shift -= 2;
-                command_part = (command >> sliced_shift) & 3;
-            }
-        }
-        else { // 6 - 0
-            if(!this->command(PS2_CMD_SETRES, &command_part)) {
-                sliced_shift -= 2;
-                command_part = (command >> sliced_shift) & 3;
-            }
-        }
-    } while(wait);
+uint8_t PS2::sliced_command(uint16_t command) {
     
     return 1;
 }
 
 uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
-    switch(state) {
-        case IDLE:
-            left_bytes = 0;
-        
-        case READ_FINISH:
-            if(!readByte(buf)) {
-                packet[left_bytes] = buf;
-
-                ++left_bytes;
-                
-                if(left_bytes < size) {
-                    state = IDLE;
-                    readByte(buf);
-                }
-                else {
-                    state = IDLE;//setIdle();
-                    left_bytes = 0;
-                    return 0;
-                }
-            }
-            break;
-
-        default:
-            break;
-    }
-
+    
     return 1;
 }
 
-uint8_t PS2::command(uint16_t command, uint8_t *param, bool wait) {
-    do {
-        switch(state) {
-            case IDLE:
-                left_bytes = 0;
-                send_bytes = PS2_SEND_BYTES(command);
-                recv_bytes = PS2_RECV_BYTES(command);
-            case WRITE_START:
-                if(!left_bytes) {
-                    writeByte(command & 0xFF);
-                }
-                else {
-                    writeByte(param[left_bytes - 1]);
-                }
-                
-                break;
-
-            case READ_FINISH:
-                if(!handleACK) {
-                    if(!readByte(buf)) {
-                        param[left_bytes] = buf;
-
-                        ++left_bytes;
-
-                        if(left_bytes < recv_bytes) {
-                            state = IDLE;
-                            readByte(buf);
-                        }
-                        else {
-                            setIdle();
-                            return 0;
-                        }
-                    }
-                    break;
-                }
-                // else
-            case WRITE_FINISH:
-                if(!writeByte(0)) {
-                    ++left_bytes;
-
-                    if(left_bytes > send_bytes) {
-                        if(!recv_bytes) {
-                            setIdle();
-                            return 0;
-                        }
-                        
-                        left_bytes = 0;
-                        state = IDLE;
-                        readByte(buf);
-                    }
-                    else {
-                        state = WRITE_START;
-                    }
-                }
-                
-                break;
-
-            default:
-                break;
-        } // switch
-    } while(wait);
-
+uint8_t PS2::command(uint16_t command, uint8_t *param) {
+    
     return 1;
 }
 
 uint8_t PS2::readByte(uint8_t &data) {
-    switch(state) {
-        case IDLE:
-            state = READ;
-
-            high(dataPin);
-            high(clockPin);
-
-            // interrupt
-            break;
-
-        case READ_FINISH:
-            if(!queue.pull(data)){
-                return 0;
-            }
-
-            break;
-
-        default:
-            break;
-    }
+    
     return 1;
 }
 
 uint8_t PS2::writeByte(uint8_t data) {
-    switch(state) {
-        case IDLE:
-            state = WRITE_START;
-            raw = data;
-            handleACK = false;
-
-            low(clockPin);
-            high(dataPin);
-
-            start = micros();
-            interval = 100;
-
-            break;
-
-        case WRITE_START:
-            // hold clock low for 100 us
-            if(micros() - start >= interval) {
-                interval = 0;
-                state = WRITE;
-
-                // start bit: 0
-                low(dataPin);
-                high(clockPin);
-            }
-
-            // interrupt
-
-            break;
-
-        // handle ACK
-        case WRITE_FINISH:
-            handleACK = true;
-            state = IDLE;
-        case READ_FINISH:
-            if(!readByte(buf)) {
-                switch(buf){
-                    case 0xFA: // TODO ACK
-                    case 0xFC: // TODO ERROR
-                    case 0xFE: // TODO NAC
-                        break;
-                    default:
-                        break;
-                }
-
-                handleACK = false;
-                return 0;
-            }
-
-            break;
-
-        default:
-            break;
-    }
-
+    
     return 1;
 }
 
 void PS2::int_on_clock() {
 
     switch(state) {
-        case READ:
-            int_read();
-            break;
-
         case WRITE:
             int_write();
             break;
 
         default:
+            int_read();
             break;
     }
 
@@ -286,7 +92,7 @@ void PS2::int_read() {
         
         case 10: // stop
             queue.push(raw);
-            state = READ_FINISH;
+            // state = READ_FINISH;
             goto reset_frame;
 
         default:
@@ -332,7 +138,7 @@ void PS2::int_write() {
 
         case 10:
             bit = digitalRead(dataPin);
-            state = WRITE_FINISH;
+            state = READ; // read ACK
             // reset
             raw = 0;
             shift = 0;
