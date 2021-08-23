@@ -24,6 +24,8 @@ class Queue
     uint8_t push(queue_elem elem);
     uint8_t pull(queue_elem &elem);
 
+    uint8_t Size();
+
 };
 
 #endif

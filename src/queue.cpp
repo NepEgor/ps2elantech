@@ -16,6 +16,11 @@ Queue::Queue()
     tail = 0;
 }
 
+uint8_t Queue::Size()
+{
+    return size;
+}
+
 // returns 1 if full
 uint8_t Queue::push(queue_elem elem)
 {

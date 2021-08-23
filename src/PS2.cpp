@@ -2,16 +2,6 @@
 
 #include "ps2defines.h"
 
-void high(int pin) {
-    pinMode(pin, INPUT);
-    digitalWrite(pin, HIGH);
-}
-
-void low(int pin) {
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, LOW);
-}
-
 void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     this->clockPin = clockPin;
     this->dataPin = dataPin;
@@ -20,13 +10,28 @@ void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     shift = 0;
     parity = 1;
 
-    low(clockPin);
-    low(dataPin);
+    pinMode(clockPin, INPUT);
+    digitalWrite(clockPin, HIGH);
+
+    pinMode(dataPin, INPUT);
+    digitalWrite(dataPin, HIGH);
 
     state = READ;
 }
 
 void PS2::test() {
+
+    writeByte(0xFF);
+    
+    //Serial.println(queue.Size());
+
+    uint8_t buf = 0xA6;
+
+    readByte(buf);
+    Serial.printf("read: %u\n", buf);
+
+    readByte(buf);
+    Serial.printf("read: %u\n", buf);
 
 }
 
@@ -46,13 +51,65 @@ uint8_t PS2::command(uint16_t command, uint8_t *param) {
 }
 
 uint8_t PS2::readByte(uint8_t &data) {
+    state = READ;
+
+    // clock and data should always be high and in input mode
+    // at this point either after init or after write
+
+    //digitalWrite(clockPin, HIGH);
+    //digitalWrite(dataPin, HIGH);
+    //pinMode(clockPin, INPUT_PULLUP);
+    //pinMode(dataPin, INPUT_PULLUP);
     
-    return 1;
+    // interrupt
+    
+    while(queue.pull(data)) {
+        // wait for read completion
+        // mb add timeout?
+    }
+    
+    return 0;
 }
 
 uint8_t PS2::writeByte(uint8_t data) {
+    state = WRITE_START;
+
+    raw = data;
+
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
+
+    digitalWrite(clockPin, LOW);
+    digitalWrite(dataPin, HIGH);
+
+    delayMicroseconds(100);
+
+    state = WRITE;
     
-    return 1;
+    digitalWrite(dataPin, LOW);
+    digitalWrite(clockPin, HIGH);
+
+    pinMode(clockPin, INPUT_PULLUP);
+
+    // interrupt
+
+    while(state != READ) {
+        // wait for write completion
+    }
+
+    // read ACK
+    readByte(data);
+
+    switch (data)
+    {
+        case 0xFA:
+            return 0;
+    
+        default:
+            // 0xFC: ERROR
+            // 0xFE: NAC
+            return 1;
+    }
 }
 
 void PS2::int_on_clock() {
@@ -60,6 +117,10 @@ void PS2::int_on_clock() {
     switch(state) {
         case WRITE:
             int_write();
+            break;
+
+        case WRITE_START:
+            // Self inflicted interrupt bypass
             break;
 
         default:
@@ -85,7 +146,7 @@ void PS2::int_read() {
             return;
         
         case 9: // parity
-            if (__builtin_parity(raw) == bit)
+            if (parity != bit)
                 goto reset_frame;
             ++shift;
             return;
@@ -132,7 +193,8 @@ void PS2::int_write() {
             break;
 
         case 9:
-            high(dataPin);
+            digitalWrite(dataPin, HIGH);
+            pinMode(dataPin, INPUT_PULLUP);
             ++shift;
             break;
 

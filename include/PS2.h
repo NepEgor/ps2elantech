@@ -10,6 +10,7 @@
 enum State: uint8_t
 {
     READ,
+    WRITE_START,
     WRITE,
 };
 
@@ -20,7 +21,7 @@ class PS2
     uint32_t clockPin;
     uint32_t dataPin;
 
-    State state;
+    volatile State state;
 
     Queue queue;
 

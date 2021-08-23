@@ -27,6 +27,8 @@ void setup() {
 
     ps2.initialize(CLOCK_PIN, DATA_PIN);
 
+    Serial.println("test");
+
     ps2.test();
 
     Serial.println("setup end");
@@ -38,12 +40,13 @@ void loop() {
     //delay(50);
 }
 
+volatile uint8_t blink = 1;
+
 void int_on_clock_1() {
-    digitalWrite(PC13, LOW);
+    digitalWrite(PC13, blink);
+    blink = !blink;
 
     //trackpad.int_on_clock();
 
     ps2.int_on_clock();
-
-    digitalWrite(PC13, HIGH);
 }
