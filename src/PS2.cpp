@@ -19,35 +19,77 @@ void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     state = READ;
 }
 
-void PS2::test() {
-
-    writeByte(0xFF);
-    
-    //Serial.println(queue.Size());
-
-    uint8_t buf = 0xA6;
-
-    readByte(buf);
-    Serial.printf("read: %u\n", buf);
-
-    readByte(buf);
-    Serial.printf("read: %u\n", buf);
-
+void printParam(uint8_t *param, uint8_t len) {
+    for(uint8_t i = 0; i < len; ++i) {
+        Serial.println(param[i], BIN);
+    }
 }
 
-uint8_t PS2::sliced_command(uint16_t command) {
+void PS2::test() {
+
+    uint8_t param[3];
+
+    Serial.printf("PS2_CMD_RESET_BAT %u\n", command(PS2_CMD_RESET_BAT, param));
+    printParam(param, PS2_RECV_BYTES(PS2_CMD_RESET_BAT));
+
+    Serial.printf("PS2_CMD_GETID %u\n", command(PS2_CMD_GETID, param));
+    printParam(param, PS2_RECV_BYTES(PS2_CMD_GETID));
+
+    Serial.printf("PS2_CMD_RESET_DIS %u\n", command(PS2_CMD_RESET_DIS));
+
+    Serial.println("Elantech magic knock");
+
+    command(PS2_CMD_RESET_DIS);
+
+    command(PS2_CMD_DISABLE);
+    command(PS2_CMD_SETSCALE11);
+    command(PS2_CMD_SETSCALE11);
+    command(PS2_CMD_SETSCALE11);
+    command(PS2_CMD_GETINFO, param);
+
+    printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
+}
+
+uint8_t PS2::sliced_command(uint8_t command) {
     
-    return 1;
+    writeByte(PS2_CMD_SETSCALE11 & 0xFF);
+    
+    for (uint8_t shift = 6; shift >= 0; shift -= 2) {
+        writeByte(PS2_CMD_SETRES & 0xFF);
+        writeByte((command >> shift) & 0b11);
+    }
+    
+    return 0;
 }
 
 uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
     
-    return 1;
+    for (uint8_t i = 0; i < size; ++i) {
+        if (readByte(packet[i]))
+            return i + 1;
+    }
+
+    return 0;
 }
 
 uint8_t PS2::command(uint16_t command, uint8_t *param) {
     
-    return 1;
+    if (writeByte(command & 0xFF))
+        return 1;
+    
+    uint8_t N = PS2_SEND_BYTES(command);
+    for (uint8_t i = 0; i < N; ++i) {
+        if (writeByte(param[i]))
+            return 2;
+    }
+    
+    N = PS2_RECV_BYTES(command);
+    for (uint8_t i = 0; i < N; ++i) {
+        if (readByte(param[i]))
+            return 3;
+    }
+
+    return 0;
 }
 
 uint8_t PS2::readByte(uint8_t &data) {
@@ -95,20 +137,27 @@ uint8_t PS2::writeByte(uint8_t data) {
 
     while(state != READ) {
         // wait for write completion
+        // mb add timeout?
     }
 
     // read ACK
     readByte(data);
 
+    //Serial.printf("ACK: %X\n", data);
+
     switch (data)
     {
-        case 0xFA:
+        case 0xFA: // ACK
             return 0;
     
-        default:
-            // 0xFC: ERROR
-            // 0xFE: NAC
+        case 0xFC: // ERROR
             return 1;
+
+        case 0xFE: // NAC
+            return 2;
+
+        default:
+            return -1;
     }
 }
 

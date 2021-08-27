@@ -61,7 +61,7 @@ class PS2
     // or Synaptics touchpads. The command is encoded as:
     // 0xE6 0xE8 rr 0xE8 ss 0xE8 tt 0xE8 uu where (rr*64)+(ss*16)+(tt*4)+uu
     // is the command.
-    uint8_t sliced_command(uint16_t command);
+    uint8_t sliced_command(uint8_t command);
 
     void int_on_clock();
 };

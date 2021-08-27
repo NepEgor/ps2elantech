@@ -43,8 +43,8 @@ void loop() {
 volatile uint8_t blink = 1;
 
 void int_on_clock_1() {
-    digitalWrite(PC13, blink);
-    blink = !blink;
+    //digitalWrite(PC13, blink);
+    //blink = !blink;
 
     //trackpad.int_on_clock();
 
