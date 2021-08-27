@@ -128,11 +128,14 @@ void TrackPad::process_packet_motion_v4() {
 }
 
 uint8_t TrackPad::poll() {
-    if(!ps2.readPacket(packet, packet_size)) {
-    //if(!ps2.readByte(packet[0])) {
+    //if(!ps2.readPacket(packet, packet_size)) {
+    if(!ps2.readByte(packet[packet_i])) {
         //ps2.setIdle();
         
         packet_i += 1;
+        if (packet_i < packet_size) return 1;
+        
+        packet_i = 0;
         //Serial.println(packet_i);
 
         //printParam(packet, packet_size);
@@ -140,7 +143,7 @@ uint8_t TrackPad::poll() {
         elantech_packet_check_v4();
         switch(packet_type) {
             case PACKET_UNKNOWN:
-                //Serial.println("Bad Data");
+                Serial.printf("Bad Data; Queue: %u\n", ps2.queueSize());
                 break;
             
             case PACKET_TRACKPOINT:

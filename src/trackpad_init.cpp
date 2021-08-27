@@ -70,49 +70,16 @@ uint8_t TrackPad::ps2_command_timeout(uint16_t command, uint8_t *param, bool wai
     return 1;
 }
 */
-/*
+
 uint8_t TrackPad::elantech_command(uint8_t command, uint8_t *param, bool wait) {
-    uint16_t com;
-    do {
-        if (command_state < 3) {
-            switch(command_state) {
-                case 0:
-                    com = ETP_PS2_CUSTOM_COMMAND;
-                    break;
+    
+    ps2.writeByte(ETP_PS2_CUSTOM_COMMAND);
+    ps2.writeByte(command);
+    ps2.command(PS2_CMD_GETINFO, param);
 
-                case 2:
-                    com = PS2_CMD_GETINFO;
-                    break;
-
-                default:
-                    com = command;
-                    break;
-            }
-
-            uint8_t ret = ps2_command_timeout(com, param, wait);
-            switch(ret) {
-                case 0:
-                    ++command_state;
-                    break;
-
-                case 2:
-                    command_state = 0;
-                    return 2;
-
-                default:
-                    break;
-            }
-        }
-        else {
-            command_state = 0;
-            return 0;
-        }
-
-    } while(wait);
-
-    return 1;
+    return 0;
 }
-*/
+
 const uint8_t write_register_commands_v3[7] = {
     ETP_PS2_CUSTOM_COMMAND,
     ETP_REGISTER_READWRITE,
@@ -222,10 +189,9 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     
     elantech_detect();
     elantech_query_info();
-    /*
     elantech_setup_ps2();
 
-    param[0] = 10;
+    param[0] = 200;
     ps2.command(PS2_CMD_SETRATE, param);
 
     param[0] = 200;
@@ -233,7 +199,7 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
 
     ps2.command(PS2_CMD_SETSCALE11);
 
-    ps2.command(PS2_CMD_ENABLE);*/
+    ps2.command(PS2_CMD_ENABLE);
 }
 
 /*  
@@ -335,7 +301,7 @@ void TrackPad::elantech_query_info() {
 
     Serial.print("crc\t");
     Serial.println(crc_enabled, HEX);
-/*
+
     Serial.println("Capabilities");
     elantech_command(ETP_CAPABILITIES_QUERY, capabilities, true);
     printParam(capabilities);
@@ -414,7 +380,7 @@ void TrackPad::elantech_query_info() {
 
     Serial.print("width\t");
     Serial.println(width);
-*/
+
 }
 
 void TrackPad::elantech_setup_ps2() {

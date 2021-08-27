@@ -64,7 +64,7 @@ class TrackPad
 
     Position fingers[5];
 
-    uint32_t packet_i = 1;
+    uint32_t packet_i = 0;
 
     void elantech_detect();
     void elantech_query_info();
@@ -76,7 +76,7 @@ class TrackPad
 
     void initialize(uint8_t clockPin, uint8_t dataPin);
 
-    //uint8_t elantech_command(uint8_t command, uint8_t *param, bool wait = false);
+    uint8_t elantech_command(uint8_t command, uint8_t *param, bool wait = false);
     uint8_t elantech_write_reg(uint8_t reg, uint8_t val, bool wait = false);
     
     //uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
