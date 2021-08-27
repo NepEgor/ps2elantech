@@ -19,11 +19,7 @@ void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     state = READ;
 }
 
-void printParam(uint8_t *param, uint8_t len) {
-    for(uint8_t i = 0; i < len; ++i) {
-        Serial.println(param[i], BIN);
-    }
-}
+void printParam(uint8_t *param, uint8_t len);
 
 void PS2::test() {
 
@@ -54,7 +50,7 @@ uint8_t PS2::sliced_command(uint8_t command) {
     
     writeByte(PS2_CMD_SETSCALE11 & 0xFF);
     
-    for (uint8_t shift = 6; shift >= 0; shift -= 2) {
+    for (int8_t shift = 6; shift >= 0; shift -= 2) {
         writeByte(PS2_CMD_SETRES & 0xFF);
         writeByte((command >> shift) & 0b11);
     }
