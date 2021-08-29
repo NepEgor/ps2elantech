@@ -190,7 +190,7 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     elantech_detect();
     elantech_query_info();
     elantech_setup_ps2();
-
+    /*
     param[0] = 200;
     ps2.command(PS2_CMD_SETRATE, param);
 
@@ -198,8 +198,9 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     ps2.command(PS2_CMD_SETRES, param);
 
     ps2.command(PS2_CMD_SETSCALE11);
-
+    */
     ps2.command(PS2_CMD_ENABLE);
+    //ps2.command(PS2_CMD_DISABLE);
 }
 
 /*  
@@ -251,6 +252,10 @@ void TrackPad::elantech_detect() {
     ps2.command(PS2_CMD_GETINFO, param);
 
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
+
+    if (param[0] != 0x3c || param[1] != 0x03 || (param[2] != 0xc8 && param[2] != 0x00)) {
+		Serial.printf("unexpected magic knock result\n");
+    }
 }
 
 void TrackPad::elantech_query_info() {

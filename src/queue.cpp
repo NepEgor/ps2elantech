@@ -14,6 +14,14 @@ Queue::Queue()
 {
     head = 0;
     tail = 0;
+    size = 0;
+}
+
+void Queue::clear()
+{
+    head = 0;
+    tail = 0;
+    size = 0;
 }
 
 uint8_t Queue::Size()

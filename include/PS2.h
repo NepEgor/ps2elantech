@@ -44,6 +44,8 @@ class PS2
 
     uint8_t readByte(uint8_t &data);
 
+    uint8_t readByteAsync(uint8_t &data);
+
     uint8_t readPacket(uint8_t *packet, uint8_t size);
 
     uint8_t queueSize() {return queue.Size();}
@@ -64,6 +66,8 @@ class PS2
     // 0xE6 0xE8 rr 0xE8 ss 0xE8 tt 0xE8 uu where (rr*64)+(ss*16)+(tt*4)+uu
     // is the command.
     uint8_t sliced_command(uint8_t command);
+
+    void purgeQueue();
 
     void int_on_clock();
 };

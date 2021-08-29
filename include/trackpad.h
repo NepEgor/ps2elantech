@@ -32,8 +32,8 @@ class TrackPad
     uint32_t y_res;
     uint32_t bus;
 
-    uint32_t x_max;
-    uint32_t y_max;
+    int32_t x_max;
+    int32_t y_max;
 
     uint8_t x_traces;
     uint8_t y_traces;
@@ -69,6 +69,8 @@ class TrackPad
     void elantech_detect();
     void elantech_query_info();
     void elantech_setup_ps2();
+
+    void resync();
 
     public:
 

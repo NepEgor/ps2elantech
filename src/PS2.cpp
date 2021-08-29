@@ -68,6 +68,12 @@ uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
     return 0;
 }
 
+void PS2::purgeQueue() {
+    //writeByte(PS2_CMD_DISABLE);
+    queue.clear();
+    //writeByte(PS2_CMD_ENABLE);
+}
+
 uint8_t PS2::command(uint16_t command, uint8_t *param) {
     
     if (writeByte(command & 0xFF))
@@ -107,6 +113,10 @@ uint8_t PS2::readByte(uint8_t &data) {
     }
     
     return 0;
+}
+
+uint8_t PS2::readByteAsync(uint8_t &data) {
+    return queue.pull(data);
 }
 
 uint8_t PS2::writeByte(uint8_t data) {
@@ -185,14 +195,16 @@ void PS2::int_read() {
     switch(shift) {
         
         case 0: // first bit must be 0
-            if(bit == 1)
+            if(bit == 1) {
                 goto reset_frame;
+            }
             ++shift;
             return;
         
         case 9: // parity
-            if (parity != bit)
+            if (parity != bit) {
                 goto reset_frame;
+            } 
             ++shift;
             return;
         
