@@ -11,6 +11,8 @@ struct Position
 {
     int32_t x;
     int32_t y;
+    int32_t dx;
+    int32_t dy;
 };
 
 // Elantech trackpad
@@ -62,6 +64,8 @@ class TrackPad
     uint8_t packet_type;
     uint8_t packet[packet_size];
 
+    uint8_t touching_prev;
+    uint8_t touching;
     Position fingers[5];
 
     uint32_t packet_i = 0;

@@ -7,6 +7,8 @@ const uint32_t DATA_PIN  = PB9;
 const uint32_t CLOCK_PIN = PB8;
 TrackPad trackpad;
 
+#include <Mouse.h>
+
 //#include "PS2.h"
 //PS2 ps2;
 
@@ -15,6 +17,8 @@ void int_on_clock_1();
 void setup() {
     Serial.begin(9600);
     
+    Mouse.begin();
+
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, HIGH);
 
