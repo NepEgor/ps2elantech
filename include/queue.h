@@ -9,7 +9,7 @@ class Queue
 {
     public:
 
-    static const uint8_t QCAPACITY = 12;
+    static const uint16_t QCAPACITY = 6000;
 
     private:
 
@@ -23,6 +23,9 @@ class Queue
     Queue();
     uint8_t push(queue_elem elem);
     uint8_t pull(queue_elem &elem);
+
+    uint8_t Size();
+    void clear();
 
 };
 

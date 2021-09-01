@@ -23,7 +23,7 @@ TrackPad::TrackPad() {
     timeout_tries = 0;
     timeout_state = 0;
 }
-
+/*
 uint8_t TrackPad::ps2_command_timeout(uint16_t command, uint8_t *param, bool wait) {
     do {
         if(timeout_tries < ETP_PS2_COMMAND_TRIES) {
@@ -69,47 +69,15 @@ uint8_t TrackPad::ps2_command_timeout(uint16_t command, uint8_t *param, bool wai
 
     return 1;
 }
+*/
 
 uint8_t TrackPad::elantech_command(uint8_t command, uint8_t *param, bool wait) {
-    uint16_t com;
-    do {
-        if (command_state < 3) {
-            switch(command_state) {
-                case 0:
-                    com = ETP_PS2_CUSTOM_COMMAND;
-                    break;
+    
+    ps2.writeByte(ETP_PS2_CUSTOM_COMMAND);
+    ps2.writeByte(command);
+    ps2.command(PS2_CMD_GETINFO, param);
 
-                case 2:
-                    com = PS2_CMD_GETINFO;
-                    break;
-
-                default:
-                    com = command;
-                    break;
-            }
-
-            uint8_t ret = ps2_command_timeout(com, param, wait);
-            switch(ret) {
-                case 0:
-                    ++command_state;
-                    break;
-
-                case 2:
-                    command_state = 0;
-                    return 2;
-
-                default:
-                    break;
-            }
-        }
-        else {
-            command_state = 0;
-            return 0;
-        }
-
-    } while(wait);
-
-    return 1;
+    return 0;
 }
 
 const uint8_t write_register_commands_v3[7] = {
@@ -178,7 +146,8 @@ uint8_t TrackPad::elantech_write_reg(uint8_t reg, uint8_t val, bool wait) {
                     break;
             }
 
-            uint8_t ret = ps2_command_timeout(com, NULL, wait);
+            //uint8_t ret = ps2_command_timeout(com, NULL, wait);
+            uint8_t ret = ps2.command(com);
             switch(ret) {
                 case 0:
                     ++write_reg_state;
@@ -208,29 +177,30 @@ void TrackPad::initialize(uint8_t clockPin, uint8_t dataPin) {
     uint8_t param[3];
 
     Serial.println("PS2_CMD_RESET_BAT");
-    ps2.command(PS2_CMD_RESET_BAT, param, true);
+    ps2.command(PS2_CMD_RESET_BAT, param);
     printParam(param, PS2_RECV_BYTES(PS2_CMD_RESET_BAT));
 
     Serial.println("PS2_CMD_GETID");
-    ps2.command(PS2_CMD_GETID, param, true);
+    ps2.command(PS2_CMD_GETID, param);
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETID));
 
     Serial.println("PS2_CMD_RESET_DIS");
-    ps2.command(PS2_CMD_RESET_DIS, NULL, true);
+    ps2.command(PS2_CMD_RESET_DIS);
     
     elantech_detect();
     elantech_query_info();
     elantech_setup_ps2();
-
-    param[0] = 10;
-    ps2.command(PS2_CMD_SETRATE, param, true);
+    /*
+    param[0] = 200;
+    ps2.command(PS2_CMD_SETRATE, param);
 
     param[0] = 200;
-    ps2.command(PS2_CMD_SETRES, param, true);
+    ps2.command(PS2_CMD_SETRES, param);
 
-    ps2.command(PS2_CMD_SETSCALE11, NULL, true);
-
-    ps2.command(PS2_CMD_ENABLE, NULL, true);
+    ps2.command(PS2_CMD_SETSCALE11);
+    */
+    ps2.command(PS2_CMD_ENABLE);
+    //ps2.command(PS2_CMD_DISABLE);
 }
 
 /*  
@@ -273,15 +243,19 @@ void TrackPad::elantech_detect() {
 
     Serial.println("Elantech magic knock");
 
-    ps2.command(PS2_CMD_RESET_DIS, NULL, true);
+    ps2.command(PS2_CMD_RESET_DIS);
 
-    ps2.command(PS2_CMD_DISABLE, NULL, true);
-    ps2.command(PS2_CMD_SETSCALE11, NULL, true);
-    ps2.command(PS2_CMD_SETSCALE11, NULL, true);
-    ps2.command(PS2_CMD_SETSCALE11, NULL, true);
-    ps2.command(PS2_CMD_GETINFO, param, true);
+    ps2.command(PS2_CMD_DISABLE);
+    ps2.command(PS2_CMD_SETSCALE11);
+    ps2.command(PS2_CMD_SETSCALE11);
+    ps2.command(PS2_CMD_SETSCALE11);
+    ps2.command(PS2_CMD_GETINFO, param);
 
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
+
+    if (param[0] != 0x3c || param[1] != 0x03 || (param[2] != 0xc8 && param[2] != 0x00)) {
+		Serial.printf("unexpected magic knock result\n");
+    }
 }
 
 void TrackPad::elantech_query_info() {
@@ -289,8 +263,8 @@ void TrackPad::elantech_query_info() {
 
     Serial.println("Firmware");
 
-    ps2.sliced_command(ETP_FW_VERSION_QUERY, true);
-    ps2.command(PS2_CMD_GETINFO, param, true);
+    ps2.sliced_command(ETP_FW_VERSION_QUERY);
+    ps2.command(PS2_CMD_GETINFO, param);
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
 
     //Serial.println(elantech_is_signature_valid(param));
@@ -411,6 +385,7 @@ void TrackPad::elantech_query_info() {
 
     Serial.print("width\t");
     Serial.println(width);
+
 }
 
 void TrackPad::elantech_setup_ps2() {

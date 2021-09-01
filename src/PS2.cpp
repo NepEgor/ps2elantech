@@ -2,16 +2,6 @@
 
 #include "ps2defines.h"
 
-void high(int pin) {
-    pinMode(pin, INPUT);
-    digitalWrite(pin, HIGH);
-}
-
-void low(int pin) {
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, LOW);
-}
-
 void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     this->clockPin = clockPin;
     this->dataPin = dataPin;
@@ -20,244 +10,176 @@ void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     shift = 0;
     parity = 1;
 
-    start = 0;
-    interval = 0;
+    pinMode(clockPin, INPUT);
+    digitalWrite(clockPin, HIGH);
 
-    sliced_shift = 8;
+    pinMode(dataPin, INPUT);
+    digitalWrite(dataPin, HIGH);
 
-    handleACK = false;
-
-    low(clockPin);
-    low(dataPin);
-
-    setIdle();
+    state = READ;
 }
 
-State PS2::getState() {
-    return state;
+void printParam(uint8_t *param, uint8_t len);
+
+void PS2::test() {
+
+    uint8_t param[3];
+
+    Serial.printf("PS2_CMD_RESET_BAT %u\n", command(PS2_CMD_RESET_BAT, param));
+    printParam(param, PS2_RECV_BYTES(PS2_CMD_RESET_BAT));
+
+    Serial.printf("PS2_CMD_GETID %u\n", command(PS2_CMD_GETID, param));
+    printParam(param, PS2_RECV_BYTES(PS2_CMD_GETID));
+
+    Serial.printf("PS2_CMD_RESET_DIS %u\n", command(PS2_CMD_RESET_DIS));
+
+    Serial.println("Elantech magic knock");
+
+    command(PS2_CMD_RESET_DIS);
+
+    command(PS2_CMD_DISABLE);
+    command(PS2_CMD_SETSCALE11);
+    command(PS2_CMD_SETSCALE11);
+    command(PS2_CMD_SETSCALE11);
+    command(PS2_CMD_GETINFO, param);
+
+    printParam(param, PS2_RECV_BYTES(PS2_CMD_GETINFO));
 }
 
-void PS2::setIdle() {
-    low(clockPin);
-    state = IDLE;
-}
-
-uint8_t PS2::getIdle() {
-    return state == IDLE;
-}
-
-uint8_t PS2::sliced_command(uint16_t command, bool wait) {
-    do {
-        if(sliced_shift < 0) {
-            sliced_shift = 8;
-            return 0;
-        }
-        else if(sliced_shift == 8) {
-            if(!this->command(PS2_CMD_SETSCALE11)) {
-                sliced_shift -= 2;
-                command_part = (command >> sliced_shift) & 3;
-            }
-        }
-        else { // 6 - 0
-            if(!this->command(PS2_CMD_SETRES, &command_part)) {
-                sliced_shift -= 2;
-                command_part = (command >> sliced_shift) & 3;
-            }
-        }
-    } while(wait);
+uint8_t PS2::sliced_command(uint8_t command) {
     
-    return 1;
+    writeByte(PS2_CMD_SETSCALE11 & 0xFF);
+    
+    for (int8_t shift = 6; shift >= 0; shift -= 2) {
+        writeByte(PS2_CMD_SETRES & 0xFF);
+        writeByte((command >> shift) & 0b11);
+    }
+    
+    return 0;
 }
 
 uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
-    switch(state) {
-        case IDLE:
-            left_bytes = 0;
-        
-        case READ_FINISH:
-            if(!readByte(buf)) {
-                packet[left_bytes] = buf;
-
-                ++left_bytes;
-                
-                if(left_bytes < size) {
-                    state = IDLE;
-                    readByte(buf);
-                }
-                else {
-                    state = IDLE;//setIdle();
-                    left_bytes = 0;
-                    return 0;
-                }
-            }
-            break;
-
-        default:
-            break;
+    
+    for (uint8_t i = 0; i < size; ++i) {
+        if (readByte(packet[i]))
+            return i + 1;
     }
 
-    return 1;
+    return 0;
 }
 
-uint8_t PS2::command(uint16_t command, uint8_t *param, bool wait) {
-    do {
-        switch(state) {
-            case IDLE:
-                left_bytes = 0;
-                send_bytes = PS2_SEND_BYTES(command);
-                recv_bytes = PS2_RECV_BYTES(command);
-            case WRITE_START:
-                if(!left_bytes) {
-                    writeByte(command & 0xFF);
-                }
-                else {
-                    writeByte(param[left_bytes - 1]);
-                }
-                
-                break;
+void PS2::purgeQueue() {
+    //writeByte(PS2_CMD_DISABLE);
+    queue.clear();
+    //writeByte(PS2_CMD_ENABLE);
+}
 
-            case READ_FINISH:
-                if(!handleACK) {
-                    if(!readByte(buf)) {
-                        param[left_bytes] = buf;
+uint8_t PS2::command(uint16_t command, uint8_t *param) {
+    
+    if (writeByte(command & 0xFF))
+        return 1;
+    
+    uint8_t N = PS2_SEND_BYTES(command);
+    for (uint8_t i = 0; i < N; ++i) {
+        if (writeByte(param[i]))
+            return 2;
+    }
+    
+    N = PS2_RECV_BYTES(command);
+    for (uint8_t i = 0; i < N; ++i) {
+        if (readByte(param[i]))
+            return 3;
+    }
 
-                        ++left_bytes;
-
-                        if(left_bytes < recv_bytes) {
-                            state = IDLE;
-                            readByte(buf);
-                        }
-                        else {
-                            setIdle();
-                            return 0;
-                        }
-                    }
-                    break;
-                }
-                // else
-            case WRITE_FINISH:
-                if(!writeByte(0)) {
-                    ++left_bytes;
-
-                    if(left_bytes > send_bytes) {
-                        if(!recv_bytes) {
-                            setIdle();
-                            return 0;
-                        }
-                        
-                        left_bytes = 0;
-                        state = IDLE;
-                        readByte(buf);
-                    }
-                    else {
-                        state = WRITE_START;
-                    }
-                }
-                
-                break;
-
-            default:
-                break;
-        } // switch
-    } while(wait);
-
-    return 1;
+    return 0;
 }
 
 uint8_t PS2::readByte(uint8_t &data) {
-    switch(state) {
-        case IDLE:
-            state = READ;
+    state = READ;
 
-            high(dataPin);
-            high(clockPin);
+    // clock and data should always be high and in input mode
+    // at this point either after init or after write
 
-            // interrupt
-            break;
-
-        case READ_FINISH:
-            if(!queue.pull(data)){
-                return 0;
-            }
-
-            break;
-
-        default:
-            break;
+    //digitalWrite(clockPin, HIGH);
+    //digitalWrite(dataPin, HIGH);
+    //pinMode(clockPin, INPUT_PULLUP);
+    //pinMode(dataPin, INPUT_PULLUP);
+    
+    // interrupt
+    
+    while(queue.pull(data)) {
+        // wait for read completion
+        // mb add timeout?
     }
-    return 1;
+    
+    return 0;
+}
+
+uint8_t PS2::readByteAsync(uint8_t &data) {
+    return queue.pull(data);
 }
 
 uint8_t PS2::writeByte(uint8_t data) {
-    switch(state) {
-        case IDLE:
-            state = WRITE_START;
-            raw = data;
-            handleACK = false;
+    state = WRITE_START;
 
-            low(clockPin);
-            high(dataPin);
+    raw = data;
 
-            start = micros();
-            interval = 100;
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
 
-            break;
+    digitalWrite(clockPin, LOW);
+    digitalWrite(dataPin, HIGH);
 
-        case WRITE_START:
-            // hold clock low for 100 us
-            if(micros() - start >= interval) {
-                interval = 0;
-                state = WRITE;
+    delayMicroseconds(100);
 
-                // start bit: 0
-                low(dataPin);
-                high(clockPin);
-            }
+    state = WRITE;
+    
+    digitalWrite(dataPin, LOW);
+    digitalWrite(clockPin, HIGH);
 
-            // interrupt
+    pinMode(clockPin, INPUT_PULLUP);
 
-            break;
+    // interrupt
 
-        // handle ACK
-        case WRITE_FINISH:
-            handleACK = true;
-            state = IDLE;
-        case READ_FINISH:
-            if(!readByte(buf)) {
-                switch(buf){
-                    case 0xFA: // TODO ACK
-                    case 0xFC: // TODO ERROR
-                    case 0xFE: // TODO NAC
-                        break;
-                    default:
-                        break;
-                }
-
-                handleACK = false;
-                return 0;
-            }
-
-            break;
-
-        default:
-            break;
+    while(state != READ) {
+        // wait for write completion
+        // mb add timeout?
     }
 
-    return 1;
+    // read ACK
+    readByte(data);
+
+    //Serial.printf("ACK: %X\n", data);
+
+    switch (data)
+    {
+        case 0xFA: // ACK
+            return 0;
+    
+        case 0xFC: // ERROR
+            return 1;
+
+        case 0xFE: // NAC
+            return 2;
+
+        default:
+            return -1;
+    }
 }
 
 void PS2::int_on_clock() {
 
     switch(state) {
-        case READ:
-            int_read();
-            break;
-
         case WRITE:
             int_write();
             break;
 
+        case WRITE_START:
+            // Self inflicted interrupt bypass
+            break;
+
         default:
+            int_read();
             break;
     }
 
@@ -273,20 +195,22 @@ void PS2::int_read() {
     switch(shift) {
         
         case 0: // first bit must be 0
-            if(bit == 1)
+            if(bit == 1) {
                 goto reset_frame;
+            }
             ++shift;
             return;
         
         case 9: // parity
-            if (__builtin_parity(raw) == bit)
+            if (parity != bit) {
                 goto reset_frame;
+            } 
             ++shift;
             return;
         
         case 10: // stop
             queue.push(raw);
-            state = READ_FINISH;
+            // state = READ_FINISH;
             goto reset_frame;
 
         default:
@@ -326,13 +250,14 @@ void PS2::int_write() {
             break;
 
         case 9:
-            high(dataPin);
+            digitalWrite(dataPin, HIGH);
+            pinMode(dataPin, INPUT_PULLUP);
             ++shift;
             break;
 
         case 10:
             bit = digitalRead(dataPin);
-            state = WRITE_FINISH;
+            state = READ; // read ACK
             // reset
             raw = 0;
             shift = 0;

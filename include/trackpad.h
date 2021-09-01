@@ -11,6 +11,8 @@ struct Position
 {
     int32_t x;
     int32_t y;
+    int32_t dx;
+    int32_t dy;
 };
 
 // Elantech trackpad
@@ -32,8 +34,8 @@ class TrackPad
     uint32_t y_res;
     uint32_t bus;
 
-    uint32_t x_max;
-    uint32_t y_max;
+    int32_t x_max;
+    int32_t y_max;
 
     uint8_t x_traces;
     uint8_t y_traces;
@@ -62,13 +64,17 @@ class TrackPad
     uint8_t packet_type;
     uint8_t packet[packet_size];
 
+    uint8_t touching_prev;
+    uint8_t touching;
     Position fingers[5];
 
-    uint32_t packet_i = 1;
+    uint32_t packet_i = 0;
 
     void elantech_detect();
     void elantech_query_info();
     void elantech_setup_ps2();
+
+    void resync();
 
     public:
 
@@ -79,7 +85,7 @@ class TrackPad
     uint8_t elantech_command(uint8_t command, uint8_t *param, bool wait = false);
     uint8_t elantech_write_reg(uint8_t reg, uint8_t val, bool wait = false);
     
-    uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
+    //uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
 
     uint8_t poll();
 
