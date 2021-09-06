@@ -127,7 +127,7 @@ void TrackPad::process_packet_status_v4() {
 
     uint8_t dif = (touching ^ touching_prev) & ~touching;
 
-    //Serial.printf("S %X %X %X\n", touching, touching_prev, dif);
+    //Serial.printf("%u S %X %X %X\n", id, touching, touching_prev, dif);
 
     if (dif) {
         for (uint8_t i = 0; i < 5; ++i) {
@@ -145,32 +145,32 @@ void TrackPad::process_packet_status_v4() {
 void TrackPad::process_packet_head_v4() {
     //Serial.println("Head");
 
-    int8_t id = ((packet[3] & 0xe0) >> 5) - 1;
-    if(id < 0) return;
+    int8_t fid = ((packet[3] & 0xe0) >> 5) - 1;
+    if(fid < 0) return;
     
     uint8_t pres, traces;
 
     int32_t x = ((packet[1] & 0x0f) << 8) | packet[2];
     int32_t y = y_max - (((packet[4] & 0x0f) << 8) | packet[5]);
 
-    if (((touching ^ touching_prev) & (1 << id))) {
-        fingers[id].dx = 0;
-        fingers[id].dy = 0;
+    if (((touching ^ touching_prev) & (1 << fid))) {
+        fingers[fid].dx = 0;
+        fingers[fid].dy = 0;
 
         touching_prev ^= touching;
     }
     else {
-        fingers[id].dx = fingers[id].x - x;
-        fingers[id].dy = fingers[id].y - y;
+        fingers[fid].dx = fingers[fid].x - x;
+        fingers[fid].dy = fingers[fid].y - y;
     }
 
-    fingers[id].x = x;
-	fingers[id].y = y;
+    fingers[fid].x = x;
+	fingers[fid].y = y;
 
 	pres = (packet[1] & 0xf0) | ((packet[4] & 0xf0) >> 4);
 	traces = (packet[0] & 0xf0) >> 4;
 
-    //Serial.printf("H f %i  x %i  y %i\n", id, fingers[id].x, fingers[id].y);
+    //Serial.printf("%u H f %i  x %i  y %i\n", id, fid, fingers[fid].x, fingers[fid].y);
     /*
     Serial.print("f ");
     Serial.print(id);
@@ -188,8 +188,8 @@ void TrackPad::process_packet_head_v4() {
 void TrackPad::process_packet_motion_v4() {
     //Serial.println("Motion");
 
-    int16_t id = ((packet[0] & 0xe0) >> 5) - 1;
-    if (id < 0) return;
+    int16_t fid = ((packet[0] & 0xe0) >> 5) - 1;
+    if (fid < 0) return;
 
     int16_t sid = ((packet[3] & 0xe0) >> 5) - 1;
     int16_t weight = (packet[0] & 0x10) ? 5 : 1;
@@ -199,13 +199,13 @@ void TrackPad::process_packet_motion_v4() {
 	int32_t delta_x2 = (int8_t)packet[4];
 	int32_t delta_y2 = (int8_t)packet[5];
     
-    fingers[id].dx = -delta_x1 * weight;
-    fingers[id].dy = delta_y1 * weight;
+    fingers[fid].dx = -delta_x1 * weight;
+    fingers[fid].dy = delta_y1 * weight;
 
-    fingers[id].x += fingers[id].dx;
-    fingers[id].y += fingers[id].dy;
+    fingers[fid].x += fingers[fid].dx;
+    fingers[fid].y += fingers[fid].dy;
 
-    //Serial.printf("M f %i  x %i  y %i", id, fingers[id].x, fingers[id].y);
+    //Serial.printf("%u M f %i  x %i  y %i", id, fid, fingers[fid].x, fingers[fid].y);
     /*
     Serial.print("f1 ");
     Serial.print(id);
@@ -237,9 +237,7 @@ void TrackPad::process_packet_motion_v4() {
 }
 
 uint8_t TrackPad::poll() {
-    //if (!ps2.readPacket(packet, packet_size)) {
     if (!ps2.readByteAsync(packet[packet_i])) {
-    //if (ps2.command(PS2_CMD_POLL, packet)) {
         //Serial.println(packet_i);
         packet_i += 1;
         if (packet_i < packet_size) return 1;
@@ -270,7 +268,7 @@ uint8_t TrackPad::poll() {
             
             case PACKET_UNKNOWN:
                 Serial.printf("Bad Data; Queue: %u\n", ps2.queueSize());
-                //ps2.purgeQueue();
+                
                 break;
             
             case PACKET_TRACKPOINT:

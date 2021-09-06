@@ -46,8 +46,6 @@ class PS2
 
     uint8_t readByteAsync(uint8_t &data);
 
-    uint8_t readPacket(uint8_t *packet, uint8_t size);
-
     uint8_t queueSize() {return queue.Size();}
 
     uint8_t writeByte(uint8_t data);

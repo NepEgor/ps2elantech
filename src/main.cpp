@@ -3,54 +3,57 @@
 #include "debug.h"
 
 #include "trackpad.h"
-const uint32_t DATA_PIN  = PB9;
-const uint32_t CLOCK_PIN = PB8;
-TrackPad trackpad;
+TrackPad trackpad1(0);
+TrackPad trackpad2(1);
 
 #include <Mouse.h>
 
-//#include "PS2.h"
-//PS2 ps2;
-
 void int_on_clock_1();
+void int_on_clock_2();
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(256000);
     
     Mouse.begin();
 
     pinMode(PC13, OUTPUT);
-    digitalWrite(PC13, HIGH);
+    digitalWrite(PC13, LOW);
 
     delay(1500);
     Serial.printf("Clock %i Hz\n", F_CPU);
 
     Serial.println("setup");
+    
+    const uint32_t DATA_PIN_1  = PB9;
+    const uint32_t CLOCK_PIN_1 = PB8;
 
-    attachInterrupt(CLOCK_PIN, int_on_clock_1, FALLING);
+    attachInterrupt(CLOCK_PIN_1, int_on_clock_1, FALLING);
 
-    trackpad.initialize(CLOCK_PIN, DATA_PIN);
+    trackpad1.initialize(CLOCK_PIN_1, DATA_PIN_1);
 
-    //ps2.initialize(CLOCK_PIN, DATA_PIN);
+    const uint32_t DATA_PIN_2  = PB7;
+    const uint32_t CLOCK_PIN_2 = PB6;
 
-    //Serial.println("test");
+    attachInterrupt(CLOCK_PIN_2, int_on_clock_2, FALLING);
 
-    //ps2.test();
+    trackpad2.initialize(CLOCK_PIN_2, DATA_PIN_2);
 
+    digitalWrite(PC13, HIGH);
     Serial.println("setup end");
 }
 
 void loop() {
-    trackpad.poll();
-
-    //delay(50);
+    trackpad1.poll();
+    trackpad2.poll();
 }
 
 void int_on_clock_1() {
 
-    blink();
+    //blink();
 
-    trackpad.int_on_clock();
+    trackpad1.int_on_clock();
+}
 
-    //ps2.int_on_clock();
+void int_on_clock_2() {
+    trackpad2.int_on_clock();
 }

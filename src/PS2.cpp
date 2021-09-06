@@ -58,20 +58,8 @@ uint8_t PS2::sliced_command(uint8_t command) {
     return 0;
 }
 
-uint8_t PS2::readPacket(uint8_t *packet, uint8_t size) {
-    
-    for (uint8_t i = 0; i < size; ++i) {
-        if (readByte(packet[i]))
-            return i + 1;
-    }
-
-    return 0;
-}
-
 void PS2::purgeQueue() {
-    //writeByte(PS2_CMD_DISABLE);
     queue.clear();
-    //writeByte(PS2_CMD_ENABLE);
 }
 
 uint8_t PS2::command(uint16_t command, uint8_t *param) {

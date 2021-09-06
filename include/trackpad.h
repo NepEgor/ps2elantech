@@ -22,6 +22,8 @@ class TrackPad
 
     PS2 ps2;
 
+    uint8_t id;
+
     uint8_t  hw_version;
     uint32_t fw_version;
     uint8_t  ic_version;
@@ -68,7 +70,7 @@ class TrackPad
     uint8_t touching;
     Position fingers[5];
 
-    uint32_t packet_i = 0;
+    uint32_t packet_i;
 
     void elantech_detect();
     void elantech_query_info();
@@ -78,7 +80,7 @@ class TrackPad
 
     public:
 
-    TrackPad();
+    TrackPad(uint8_t id);
 
     void initialize(uint8_t clockPin, uint8_t dataPin);
 
