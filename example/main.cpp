@@ -1,12 +1,10 @@
 #include <Arduino.h>
 
-#include "debug.h"
-
 #include "trackpad.h"
 TrackPad trackpad1(0);
 TrackPad trackpad2(1);
 
-#include <Mouse.h>
+//#include <Mouse.h>
 
 void int_on_clock_1();
 void int_on_clock_2();
@@ -14,7 +12,7 @@ void int_on_clock_2();
 void setup() {
     Serial.begin(256000);
     
-    Mouse.begin();
+    //Mouse.begin();
 
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, LOW);
@@ -48,9 +46,6 @@ void loop() {
 }
 
 void int_on_clock_1() {
-
-    //blink();
-
     trackpad1.int_on_clock();
 }
 

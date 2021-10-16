@@ -2,7 +2,7 @@
 
 #include "ps2defines.h"
 
-#include <Mouse.h>
+//#include <Mouse.h>
 
 enum PacketType: uint8_t
 {
@@ -255,14 +255,14 @@ uint8_t TrackPad::poll() {
             case PACKET_V4_HEAD:
                 process_packet_head_v4();
 
-                Mouse.move(fingers[0].dx, fingers[0].dy, 0);
+                //Mouse.move(fingers[0].dx, fingers[0].dy, 0);
 
                 break;
 
             case PACKET_V4_MOTION:
                 process_packet_motion_v4();
 
-                Mouse.move(fingers[0].dx, fingers[0].dy, 0);
+                //Mouse.move(fingers[0].dx, fingers[0].dy, 0);
 
                 break;
             

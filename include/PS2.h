@@ -1,8 +1,6 @@
 #ifndef PS2_H
 #define PS2_H
 
-#include "debug.h"
-
 #include "queue.h"
 
 #include <Arduino.h>

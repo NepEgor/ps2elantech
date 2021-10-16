@@ -2,3 +2,4 @@
 .vscode
 monitor_output
 old
+.gitignore

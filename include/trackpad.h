@@ -1,8 +1,6 @@
 #ifndef TRACKPAD_H
 #define TRACKPAD_H
 
-#include "debug.h"
-
 #include "PS2.h"
 
 void printParam(uint8_t *param, uint8_t len = 3);
