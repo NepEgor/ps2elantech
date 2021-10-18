@@ -5,7 +5,7 @@
 
 void printParam(uint8_t *param, uint8_t len = 3);
 
-struct Position
+struct FingerPosition
 {
     int32_t x;
     int32_t y;
@@ -43,6 +43,8 @@ class TrackPad
 
     uint8_t reg_07;
     uint8_t reg_10;
+
+    /* unused
     uint8_t reg_11;
     uint8_t reg_20;
     uint8_t reg_21;
@@ -51,22 +53,26 @@ class TrackPad
     uint8_t reg_24;
     uint8_t reg_25;
     uint8_t reg_26;
+    */
 
     uint8_t write_reg_state;
 
+    /* unused
     uint8_t timeout_tries;
     uint8_t timeout_state;
     uint32_t timeout_start;
 
     uint8_t command_state;
+    */
 
     static const uint8_t packet_size = 6;
     uint8_t packet_type;
     uint8_t packet[packet_size];
 
-    uint8_t touching_prev;
-    uint8_t touching;
-    Position fingers[5];
+    int8_t touching_prev;
+    int8_t touching;
+    static const uint8_t fingers_num = 5;
+    FingerPosition fingers[fingers_num];
 
     uint32_t packet_i;
 
@@ -87,7 +93,7 @@ class TrackPad
     
     //uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
 
-    uint8_t poll();
+    int8_t poll(FingerPosition* fingers[]);
 
     uint8_t elantech_packet_check_v4();
     void process_packet_status_v4();

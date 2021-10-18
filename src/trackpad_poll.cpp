@@ -125,12 +125,12 @@ void TrackPad::process_packet_status_v4() {
     touching_prev = touching;
     touching = packet[1] & 0x1f;
 
-    uint8_t dif = (touching ^ touching_prev) & ~touching;
+    int8_t dif = (touching ^ touching_prev) & ~touching;
 
     //Serial.printf("%u S %X %X %X\n", id, touching, touching_prev, dif);
 
     if (dif) {
-        for (uint8_t i = 0; i < 5; ++i) {
+        for (uint8_t i = 0; i < fingers_num; ++i) {
 
             if(dif & 1) {
                 fingers[i].dx = 0;
@@ -236,11 +236,15 @@ void TrackPad::process_packet_motion_v4() {
     }
 }
 
-uint8_t TrackPad::poll() {
+int8_t TrackPad::poll(FingerPosition* fingers[]) {
     if (!ps2.readByteAsync(packet[packet_i])) {
         //Serial.println(packet_i);
         packet_i += 1;
-        if (packet_i < packet_size) return 1;
+        if (packet_i < packet_size)
+        {
+            *fingers = NULL;
+            return -1;
+        }
         
         packet_i = 0;
 
@@ -250,12 +254,14 @@ uint8_t TrackPad::poll() {
         switch(packet_type) {
             case PACKET_V4_STATUS:
                 process_packet_status_v4();
+                *fingers = NULL;
                 break;
 
             case PACKET_V4_HEAD:
                 process_packet_head_v4();
 
                 //Mouse.move(fingers[0].dx, fingers[0].dy, 0);
+                *fingers = this->fingers;
 
                 break;
 
@@ -263,26 +269,32 @@ uint8_t TrackPad::poll() {
                 process_packet_motion_v4();
 
                 //Mouse.move(fingers[0].dx, fingers[0].dy, 0);
+                *fingers = this->fingers;
 
                 break;
             
             case PACKET_UNKNOWN:
-                Serial.printf("Bad Data; Queue: %u\n", ps2.queueSize());
-                
+                //Serial.printf("Bad Data; Queue: %u\n", ps2.queueSize());
+                *fingers = NULL;
+                return -2;
                 break;
             
             case PACKET_TRACKPOINT:
                 //Serial.println("Trackpoint");
+                *fingers = NULL;
+                return -2;
                 break;
 
             // TODO V3
 
             default:
+                *fingers = NULL;
+                return -3;
                 break;
         }
 
         //Serial.println();
     }
-
-    return 0;
+    
+    return touching;
 }

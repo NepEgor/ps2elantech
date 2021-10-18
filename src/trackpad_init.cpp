@@ -19,10 +19,10 @@ static unsigned int elantech_convert_res(unsigned int val)
 
 TrackPad::TrackPad(uint8_t id) {
     this->id = id;
-    command_state = 0;
+    //command_state = 0;
     write_reg_state = 0;
-    timeout_tries = 0;
-    timeout_state = 0;
+    //timeout_tries = 0;
+    //timeout_state = 0;
 }
 /*
 uint8_t TrackPad::ps2_command_timeout(uint16_t command, uint8_t *param, bool wait) {

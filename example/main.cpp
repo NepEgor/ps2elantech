@@ -22,15 +22,15 @@ void setup() {
 
     Serial.println("setup");
     
-    const uint32_t DATA_PIN_1  = PB9;
-    const uint32_t CLOCK_PIN_1 = PB8;
+    const uint8_t DATA_PIN_1  = PB9;
+    const uint8_t CLOCK_PIN_1 = PB8;
 
     attachInterrupt(CLOCK_PIN_1, int_on_clock_1, FALLING);
 
     trackpad1.initialize(CLOCK_PIN_1, DATA_PIN_1);
 
-    const uint32_t DATA_PIN_2  = PB7;
-    const uint32_t CLOCK_PIN_2 = PB6;
+    const uint8_t DATA_PIN_2  = PB7;
+    const uint8_t CLOCK_PIN_2 = PB6;
 
     attachInterrupt(CLOCK_PIN_2, int_on_clock_2, FALLING);
 
@@ -41,8 +41,18 @@ void setup() {
 }
 
 void loop() {
-    trackpad1.poll();
-    trackpad2.poll();
+    FingerPosition* fp;
+    int8_t fingers_touching = trackpad1.poll(&fp);
+    
+    if (fingers_touching >= 0)
+    {
+        if (fp != NULL)
+        {
+            //Mouse.move(fp[0].dx, fp[0].dy, 0);
+        }
+    }
+    
+    trackpad2.poll(&fp);
 }
 
 void int_on_clock_1() {
