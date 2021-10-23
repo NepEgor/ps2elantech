@@ -5,17 +5,17 @@
 
 #include <Arduino.h>
 
-enum State: uint8_t
-{
-    READ,
-    WRITE_START,
-    WRITE,
-};
-
 class PS2
 {
     private:
     
+    enum State: uint8_t
+    {
+        READ,
+        WRITE_START,
+        WRITE,
+    };
+
     uint32_t clockPin;
     uint32_t dataPin;
 
