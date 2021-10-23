@@ -69,9 +69,11 @@ class TrackPad
     uint8_t packet_type;
     uint8_t packet[packet_size];
 
+    public:
+    static const uint8_t fingers_num = 5;
+    private:
     int8_t touching_prev;
     int8_t touching;
-    static const uint8_t fingers_num = 5;
     FingerPosition fingers[fingers_num];
 
     uint32_t packet_i;
@@ -94,6 +96,9 @@ class TrackPad
     //uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
 
     int8_t poll(FingerPosition* fingers[]);
+
+    int32_t getMaxX() {return x_max;}
+    int32_t getMaxY() {return y_max;}
 
     uint8_t elantech_packet_check_v4();
     void process_packet_status_v4();
