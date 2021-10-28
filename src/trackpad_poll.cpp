@@ -151,7 +151,7 @@ void TrackPad::process_packet_head_v4() {
     uint8_t pres, traces;
 
     int32_t x = ((packet[1] & 0x0f) << 8) | packet[2];
-    int32_t y = y_max - (((packet[4] & 0x0f) << 8) | packet[5]);
+    int32_t y = ((packet[4] & 0x0f) << 8) | packet[5];
 
     if (((touching ^ touching_prev) & (1 << fid))) {
         fingers[fid].dx = 0;
@@ -200,7 +200,7 @@ void TrackPad::process_packet_motion_v4() {
 	int32_t delta_y2 = (int8_t)packet[5];
     
     fingers[fid].dx = delta_x1 * weight;
-    fingers[fid].dy = -delta_y1 * weight;
+    fingers[fid].dy = delta_y1 * weight;
 
     fingers[fid].x += fingers[fid].dx;
     fingers[fid].y += fingers[fid].dy;
@@ -217,7 +217,7 @@ void TrackPad::process_packet_motion_v4() {
 
     if(sid >= 0) {
         fingers[sid].dx = delta_x2 * weight;
-        fingers[sid].dy = -delta_y2 * weight;
+        fingers[sid].dy = delta_y2 * weight;
 
         fingers[sid].x += fingers[sid].dx;
         fingers[sid].y += fingers[sid].dy;
