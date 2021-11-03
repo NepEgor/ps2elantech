@@ -76,8 +76,6 @@ class TrackPad
     int8_t touching;
     FingerPosition fingers[fingers_num];
 
-    uint32_t packet_i;
-
     void elantech_detect();
     void elantech_query_info();
     void elantech_setup_ps2();

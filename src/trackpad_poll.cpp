@@ -237,17 +237,10 @@ void TrackPad::process_packet_motion_v4() {
 }
 
 int8_t TrackPad::poll(FingerPosition* fingers[]) {
-    if (!ps2.readByteAsync(packet[packet_i])) {
-        //Serial.println(packet_i);
-        packet_i += 1;
-        if (packet_i < packet_size)
-        {
-            *fingers = NULL;
-            return -1;
+    if (ps2.queueSize() >= packet_size) {
+        for (uint8_t i = 0; i < packet_size; ++i) {
+            ps2.readByteAsync(packet[i]);
         }
-        
-        packet_i = 0;
-
         //printParam(packet, packet_size);
 
         elantech_packet_check_v4();
@@ -260,7 +253,6 @@ int8_t TrackPad::poll(FingerPosition* fingers[]) {
             case PACKET_V4_HEAD:
                 process_packet_head_v4();
 
-                //Mouse.move(fingers[0].dx, fingers[0].dy, 0);
                 *fingers = this->fingers;
 
                 break;
@@ -268,7 +260,6 @@ int8_t TrackPad::poll(FingerPosition* fingers[]) {
             case PACKET_V4_MOTION:
                 process_packet_motion_v4();
 
-                //Mouse.move(fingers[0].dx, fingers[0].dy, 0);
                 *fingers = this->fingers;
 
                 break;
@@ -294,7 +285,8 @@ int8_t TrackPad::poll(FingerPosition* fingers[]) {
         }
 
         //Serial.println();
+        return touching;
     }
     
-    return touching;
+    return -1;
 }
