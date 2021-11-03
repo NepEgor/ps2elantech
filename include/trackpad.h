@@ -13,6 +13,20 @@ struct FingerPosition
     int32_t dy;
 };
 
+enum TouchEventType : uint8_t
+{
+    TET_DOWN,
+    TET_MOVE,
+    TET_UP,
+};
+
+struct TouchEvent
+{
+    TouchEventType type;
+    uint8_t finger_id;
+    FingerPosition fp;
+};
+
 // Elantech trackpad
 class TrackPad
 {
@@ -72,15 +86,15 @@ class TrackPad
     public:
     static const uint8_t fingers_num = 5;
     private:
-    int8_t touching_prev;
-    int8_t touching;
+    uint8_t touching_prev;
+    uint8_t touching;
     FingerPosition fingers[fingers_num];
 
     void elantech_detect();
     void elantech_query_info();
     void elantech_setup_ps2();
 
-    void resync();
+    //void resync();
 
     public:
 
@@ -93,15 +107,15 @@ class TrackPad
     
     //uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
 
-    int8_t poll(FingerPosition* fingers[]);
+    int8_t poll(TouchEvent* tevent, uint8_t &size);
 
     int32_t getMaxX() {return x_max;}
     int32_t getMaxY() {return y_max;}
 
     uint8_t elantech_packet_check_v4();
-    void process_packet_status_v4();
-    void process_packet_head_v4();
-    void process_packet_motion_v4();
+    void process_packet_status_v4(TouchEvent* tevent, uint8_t &size);
+    void process_packet_head_v4(TouchEvent* tevent, uint8_t &size);
+    void process_packet_motion_v4(TouchEvent* tevent, uint8_t &size);
 
     void inline int_on_clock(){
         ps2.int_on_clock();

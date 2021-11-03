@@ -40,19 +40,37 @@ void setup() {
     Serial.println("setup end");
 }
 
+uint8_t tevent_size;
+TouchEvent tevent[5];
+
 void loop() {
-    FingerPosition* fp;
-    int8_t fingers_touching = trackpad1.poll(&fp);
+    int8_t ret = trackpad1.poll(tevent, tevent_size);
     
-    if (fingers_touching >= 0)
+    if (ret > 0)
     {
-        if (fp != NULL)
+        for (uint8_t i = 0; i < tevent_size; ++i)
         {
-            //Mouse.move(fp[0].dx, fp[0].dy, 0);
+            switch (tevent[i].type)
+            {
+                case TET_DOWN:
+
+                    break;
+
+                case TET_MOVE:
+
+                    break;
+                
+                case TET_UP:
+
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
     
-    trackpad2.poll(&fp);
+    trackpad2.poll(tevent, tevent_size);
 }
 
 void int_on_clock_1() {
