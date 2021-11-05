@@ -125,10 +125,10 @@ void TrackPad::process_packet_status_v4(TouchEvent* tevent, uint8_t &size) {
     touching_prev = touching;
     touching = packet[1] & 0x1f;
 
-    uint8_t dif01 = (touching ^ touching_prev) & ~touching;      // sets changes from 0 to 1
-    uint8_t dif10 = (touching ^ touching_prev) & ~touching_prev; // sets changes from 1 to 0
+    uint8_t dif01 = (touching ^ touching_prev) & ~touching_prev; // sets changes from 0 to 1
+    uint8_t dif10 = (touching ^ touching_prev) & ~touching;      // sets changes from 1 to 0
 
-    //Serial.printf("%u S %X %X %X\n", id, touching, touching_prev, dif);
+    //Serial.printf("%u S %X %X %X %X\n", id, touching, touching_prev, dif01, dif10);
 
     if (dif01) {
         for (uint8_t i = 0; i < fingers_num; ++i) {
