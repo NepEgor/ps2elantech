@@ -34,8 +34,6 @@ class TrackPad
 
     PS2 ps2;
 
-    uint8_t id;
-
     uint8_t  hw_version;
     uint32_t fw_version;
     uint8_t  ic_version;
@@ -98,7 +96,7 @@ class TrackPad
 
     public:
 
-    TrackPad(uint8_t id);
+    TrackPad();
 
     void initialize(uint8_t clockPin, uint8_t dataPin);
 

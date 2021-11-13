@@ -17,8 +17,7 @@ static unsigned int elantech_convert_res(unsigned int val)
 	return (val * 10 + 790) * 10 / 254;
 }
 
-TrackPad::TrackPad(uint8_t id) {
-    this->id = id;
+TrackPad::TrackPad() {
     //command_state = 0;
     write_reg_state = 0;
     //timeout_tries = 0;
