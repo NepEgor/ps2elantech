@@ -184,14 +184,14 @@ void PS2::int_read() {
         
         case 0: // first bit must be 0
             if(bit == 1) {
-                goto reset_frame;
+                break;
             }
             ++shift;
             return;
         
         case 9: // parity
             if (parity != bit) {
-                goto reset_frame;
+                break;
             } 
             ++shift;
             return;
@@ -199,21 +199,19 @@ void PS2::int_read() {
         case 10: // stop
             queue.push(raw);
             // state = READ_FINISH;
-            goto reset_frame;
+            break;
 
         default:
-            break;
+            parity ^= bit;
+            raw |= bit << (shift - 1);
+            ++shift;
+            return;
     }
 
-    parity ^= bit;
-    raw |= bit << (shift - 1);
-    ++shift;
-    return;
-
-    reset_frame:
-        raw = 0;
-        shift = 0;
-        parity = 1;
+    // reset frame
+    raw = 0;
+    shift = 0;
+    parity = 1;
 }
 
 void PS2::int_write() {
