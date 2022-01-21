@@ -1,5 +1,5 @@
-#ifndef TRACKPAD_H
-#define TRACKPAD_H
+#ifndef PS2ELANTECH_TRACKPAD_H
+#define PS2ELANTECH_TRACKPAD_H
 
 #include "PS2.h"
 

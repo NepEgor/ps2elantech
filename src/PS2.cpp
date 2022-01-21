@@ -26,13 +26,16 @@ void PS2::test() {
 
     uint8_t param[3];
 
-    Serial.printf("PS2_CMD_RESET_BAT %u\n", command(PS2_CMD_RESET_BAT, param));
+    Serial.printf("PS2_CMD_RESET_BAT ");
+    Serial.printf("%u\n", command(PS2_CMD_RESET_BAT, param));
     printParam(param, PS2_RECV_BYTES(PS2_CMD_RESET_BAT));
 
-    Serial.printf("PS2_CMD_GETID %u\n", command(PS2_CMD_GETID, param));
+    Serial.printf("PS2_CMD_GETID ");
+    Serial.printf("%u\n", command(PS2_CMD_GETID, param));
     printParam(param, PS2_RECV_BYTES(PS2_CMD_GETID));
 
-    Serial.printf("PS2_CMD_RESET_DIS %u\n", command(PS2_CMD_RESET_DIS));
+    Serial.printf("PS2_CMD_RESET_DIS ");
+    Serial.printf("%u\n", command(PS2_CMD_RESET_DIS));
 
     Serial.println("Elantech magic knock");
 

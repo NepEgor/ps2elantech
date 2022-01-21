@@ -1,7 +1,7 @@
-#ifndef PS2_H
-#define PS2_H
+#ifndef PS2ELANTECH_PS2_H
+#define PS2ELANTECH_PS2_H
 
-#include "queue.h"
+#include "const_queue.h"
 
 #include <Arduino.h>
 
@@ -21,7 +21,7 @@ class PS2
 
     volatile State state;
 
-    Queue queue;
+    ConstQueue queue;
 
     // interupt variables
     volatile uint8_t raw;
