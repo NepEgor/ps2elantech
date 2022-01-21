@@ -1,4 +1,4 @@
-#include "queue.h"
+#include "const_queue.h"
 /*
 bool queue_empty(struct queue *q)
 {
@@ -10,27 +10,27 @@ bool queue_full(struct queue *q)
   return q.size == QCAPACITY;
 }
 */
-Queue::Queue()
+ConstQueue::ConstQueue()
 {
     head = 0;
     tail = 0;
     size = 0;
 }
 
-void Queue::clear()
+void ConstQueue::clear()
 {
     head = 0;
     tail = 0;
     size = 0;
 }
 
-uint8_t Queue::Size()
+uint8_t ConstQueue::Size()
 {
     return size;
 }
 
 // returns 1 if full
-uint8_t Queue::push(queue_elem elem)
+uint8_t ConstQueue::push(queue_elem elem)
 {
     if (size < QCAPACITY)
     {
@@ -48,7 +48,7 @@ uint8_t Queue::push(queue_elem elem)
 }
 
 // returns 1 if empty
-uint8_t Queue::pull(queue_elem &elem)
+uint8_t ConstQueue::pull(queue_elem &elem)
 {
     if (size > 0)
     {

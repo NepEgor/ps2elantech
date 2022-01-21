@@ -1,11 +1,11 @@
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef PS2ELANTECH_QUEUE_H
+#define PS2ELANTECH_QUEUE_H
 
-#include <Arduino.h>
+#include <stdint.h>
 
 typedef uint8_t queue_elem;
 
-class Queue
+class ConstQueue
 {
     public:
 
@@ -20,7 +20,7 @@ class Queue
 
     public:
 
-    Queue();
+    ConstQueue();
     uint8_t push(queue_elem elem);
     uint8_t pull(queue_elem &elem);
 
