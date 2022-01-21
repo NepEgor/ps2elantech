@@ -2,6 +2,10 @@
 
 #include "ps2defines.h"
 
+#ifdef ESP32
+#include <FunctionalInterrupt.h>
+#endif
+
 void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     this->clockPin = clockPin;
     this->dataPin = dataPin;
