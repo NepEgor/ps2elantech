@@ -10,10 +10,11 @@ void PS2::initialize(uint32_t clockPin, uint32_t dataPin) {
     shift = 0;
     parity = 1;
 
-    pinMode(clockPin, INPUT);
+    pinMode(clockPin, INPUT_PULLUP);
     digitalWrite(clockPin, HIGH);
+    attachInterrupt(clockPin, [this](){this->int_on_clock();}, FALLING);
 
-    pinMode(dataPin, INPUT);
+    pinMode(dataPin, INPUT_PULLUP);
     digitalWrite(dataPin, HIGH);
 
     state = READ;
@@ -126,6 +127,7 @@ uint8_t PS2::writeByte(uint8_t data) {
     digitalWrite(clockPin, HIGH);
 
     pinMode(clockPin, INPUT_PULLUP);
+    attachInterrupt(clockPin, [this](){this->int_on_clock();}, FALLING);
 
     // interrupt
 
