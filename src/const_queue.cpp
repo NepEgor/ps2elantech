@@ -24,7 +24,7 @@ void ConstQueue::clear()
     size = 0;
 }
 
-uint8_t ConstQueue::Size()
+uint16_t ConstQueue::Size()
 {
     return size;
 }

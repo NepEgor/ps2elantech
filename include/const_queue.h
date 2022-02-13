@@ -14,9 +14,9 @@ class ConstQueue
     private:
 
     queue_elem container[QCAPACITY];
-    uint8_t head;
-    uint8_t tail;
-    uint8_t size;
+    uint16_t head;
+    uint16_t tail;
+    uint16_t size;
 
     public:
 
@@ -24,7 +24,7 @@ class ConstQueue
     uint8_t push(queue_elem elem);
     uint8_t pull(queue_elem &elem);
 
-    uint8_t Size();
+    uint16_t Size();
     void clear();
 
 };
