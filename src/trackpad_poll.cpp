@@ -280,12 +280,19 @@ void TrackPad::process_packet_motion_v4(TouchEvent* tevent, uint8_t &size) {
 }
 
 int8_t TrackPad::poll(TouchEvent* tevent, uint8_t &size) {
-    if (ps2.queueSize() >= packet_size) {
-        for (uint8_t i = 0; i < packet_size; ++i) {
-            ps2.readByteAsync(packet[i]);
+    if (packet_bytes_read < packet_size)
+    {
+        ps2.BeginRead();
+        if (!ps2.readByte(packet[packet_bytes_read]))
+        {
+            ++packet_bytes_read;
         }
-        //printParam(packet, packet_size);
-
+        ps2.EndRead();
+    }
+    
+    if (packet_bytes_read >= packet_size)
+    {
+        packet_bytes_read = 0;
         size = 0;
 
         elantech_packet_check_v4();

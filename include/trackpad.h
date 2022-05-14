@@ -78,6 +78,7 @@ class TrackPad
     */
 
     static const uint8_t packet_size = 6;
+    uint8_t packet_bytes_read;
     uint8_t packet_type;
     uint8_t packet[packet_size];
 

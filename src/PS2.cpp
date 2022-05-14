@@ -83,15 +83,30 @@ uint8_t PS2::command(uint16_t command, uint8_t *param) {
     
     N = PS2_RECV_BYTES(command);
     for (uint8_t i = 0; i < N; ++i) {
-        if (readByte(param[i]))
-            return 3;
+        while (readByte(param[i]));
     }
 
     return 0;
 }
 
-uint8_t PS2::readByte(uint8_t &data) {
+void PS2::BeginRead() {
+    digitalWrite(clockPin, HIGH);
+    digitalWrite(dataPin, HIGH);
+    pinMode(clockPin, INPUT_PULLUP);
+    pinMode(dataPin, INPUT_PULLUP);
+
     state = READ;
+}
+
+void PS2::EndRead() {
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
+    digitalWrite(clockPin, LOW);
+    digitalWrite(dataPin, HIGH);
+}
+
+uint8_t PS2::readByte(uint8_t &data) {
+    //state = READ;
 
     // clock and data should always be high and in input mode
     // at this point either after init or after write
@@ -102,10 +117,27 @@ uint8_t PS2::readByte(uint8_t &data) {
     //pinMode(dataPin, INPUT_PULLUP);
     
     // interrupt
+
+    uint32_t start = micros();
+    uint8_t clock_prev = digitalRead(clockPin);
     
     while(queue.pull(data)) {
         // wait for read completion
-        // mb add timeout?
+        // timeout between clock pulses to sence if there is transmisson going
+        uint8_t clock = digitalRead(clockPin);
+        if (clock == clock_prev)
+        {
+            if (micros() - start > 1000)
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            start = micros();
+        }
+
+        clock_prev = clock;
     }
     
     return 0;

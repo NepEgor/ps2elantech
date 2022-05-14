@@ -40,6 +40,9 @@ class PS2
     
     void test();
 
+    void BeginRead();
+    void EndRead();
+
     uint8_t readByte(uint8_t &data);
 
     uint8_t readByteAsync(uint8_t &data);

@@ -20,6 +20,7 @@ static unsigned int elantech_convert_res(unsigned int val)
 TrackPad::TrackPad() {
     //command_state = 0;
     write_reg_state = 0;
+    packet_bytes_read = 0;
     //timeout_tries = 0;
     //timeout_state = 0;
 }
