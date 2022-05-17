@@ -16,65 +16,8 @@ enum PacketType: uint8_t
     PACKET_TRACKPOINT	= 0x08,
 };
 
-/*
-//Function to get gcd of a and b
-uint8_t gcd(uint8_t a, uint8_t b)
+uint8_t TrackPad::elantech_packet_check_v4()
 {
-    if (b == 0)
-        return a;
- 
-    else
-        return gcd(b, a % b);
-}
- 
-//Function to left rotate arr[] of siz n by d
-void leftRotate(uint8_t* arr, uint8_t d, uint8_t n)
-{
-    // To handle if d >= n
-    d = d % n;
-    uint8_t g_c_d = gcd(d, n);
-    for (uint8_t i = 0; i < g_c_d; i++) {
-        // move i-th values of blocks
-        uint8_t temp = arr[i];
-        uint8_t j = i;
- 
-        while (1) {
-            uint8_t k = j + d;
-            if (k >= n)
-                k = k - n;
- 
-            if (k == i)
-                break;
- 
-            arr[j] = arr[k];
-            j = k;
-        }
-        arr[j] = temp;
-    }
-}
-
-void TrackPad::resync() {
-    Serial.print("Resyncing ");
-    uint8_t i = 0;
-    //for (uint8_t i = 1; i < packet_size; ++i) {
-    while(1) {
-        ps2.readByte(packet[i % packet_size]);
-        ++i;
-
-        if((packet[(0 + i) % packet_size] & 0x08) == 0x00 &&
-		   (packet[(3 + i) % packet_size] & 0x1c) == 0x10)
-        {
-            leftRotate(packet, i, packet_size);
-            Serial.println(i);
-            return;
-        }
-    }
-
-    Serial.println("Uanble to resync!");
-}
-*/
-
-uint8_t TrackPad::elantech_packet_check_v4() {
     packet_type = packet[3] & 0x03;
 
     bool sanity_check = true;
@@ -91,13 +34,14 @@ uint8_t TrackPad::elantech_packet_check_v4() {
 				        (packet[3] & 0x1c) == 0x10);
     //}
     
-    if (!sanity_check) {
+    if (!sanity_check)
+    {
         packet_type = PACKET_UNKNOWN;
-        //resync();
-        //packet_type = packet[3] & 0x03;
     }
-    else {
-        switch (packet_type) {
+    else
+    {
+        switch (packet_type)
+        {
             case 0:
                 packet_type = PACKET_V4_STATUS;
                 break;
@@ -119,7 +63,8 @@ uint8_t TrackPad::elantech_packet_check_v4() {
 	return packet_type;
 }
 
-void TrackPad::process_packet_status_v4(TouchEvent* tevent, uint8_t &size) {
+void TrackPad::process_packet_status_v4(TouchEvent* tevent, uint8_t &size)
+{
     //Serial.println("Status");
 
     touching_prev = touching;
@@ -130,10 +75,12 @@ void TrackPad::process_packet_status_v4(TouchEvent* tevent, uint8_t &size) {
 
     //Serial.printf("%u S %X %X %X %X\n", id, touching, touching_prev, dif01, dif10);
 
-    if (dif01) {
-        for (uint8_t i = 0; i < fingers_num; ++i) {
-
-            if(dif01 & 1) {
+    if (dif01)
+    {
+        for (uint8_t i = 0; i < fingers_num; ++i)
+        {
+            if(dif01 & 1)
+            {
                 fingers[i].dx = 0;
                 fingers[i].dy = 0;
             }
@@ -142,10 +89,12 @@ void TrackPad::process_packet_status_v4(TouchEvent* tevent, uint8_t &size) {
         }
     }
 
-    if (dif10) {
-        for (uint8_t i = 0; i < fingers_num; ++i) {
-
-            if(dif10 & 1) {
+    if (dif10)
+    {
+        for (uint8_t i = 0; i < fingers_num; ++i)
+        {
+            if(dif10 & 1)
+            {
                 tevent[size].finger_id = i;
                 tevent[size].type = TET_UP;
                 ++size;
@@ -156,7 +105,8 @@ void TrackPad::process_packet_status_v4(TouchEvent* tevent, uint8_t &size) {
     }
 }
 
-void TrackPad::process_packet_head_v4(TouchEvent* tevent, uint8_t &size) {
+void TrackPad::process_packet_head_v4(TouchEvent* tevent, uint8_t &size)
+{
     //Serial.println("Head");
 
     int8_t fid = ((packet[3] & 0xe0) >> 5) - 1;
@@ -170,7 +120,8 @@ void TrackPad::process_packet_head_v4(TouchEvent* tevent, uint8_t &size) {
     int32_t y = ((packet[4] & 0x0f) << 8) | packet[5];
 
     // if finger just touched down
-    if (((touching ^ touching_prev) & (1 << fid))) {
+    if (((touching ^ touching_prev) & (1 << fid)))
+    {
         fingers[fid].dx = 0;
         fingers[fid].dy = 0;
 
@@ -179,7 +130,8 @@ void TrackPad::process_packet_head_v4(TouchEvent* tevent, uint8_t &size) {
         tevent[0].type = TET_DOWN;
     }
     // if finger has been touching
-    else {
+    else
+    {
         fingers[fid].dx = fingers[fid].x - x;
         fingers[fid].dy = fingers[fid].y - y;
 
@@ -213,7 +165,8 @@ void TrackPad::process_packet_head_v4(TouchEvent* tevent, uint8_t &size) {
     //Serial.println(traces * width);
 }
 
-void TrackPad::process_packet_motion_v4(TouchEvent* tevent, uint8_t &size) {
+void TrackPad::process_packet_motion_v4(TouchEvent* tevent, uint8_t &size)
+{
     //Serial.println("Motion");
 
     int16_t fid = ((packet[0] & 0xe0) >> 5) - 1;
@@ -251,7 +204,8 @@ void TrackPad::process_packet_motion_v4(TouchEvent* tevent, uint8_t &size) {
     Serial.println(fingers[id].y);
     */
 
-    if(sid >= 0) {
+    if(sid >= 0)
+    {
         fingers[sid].dx = delta_x2 * weight;
         fingers[sid].dy = delta_y2 * weight;
 
@@ -274,12 +228,14 @@ void TrackPad::process_packet_motion_v4(TouchEvent* tevent, uint8_t &size) {
         Serial.print("  y2 ");
         Serial.println(fingers[sid].y);*/
     }
-    else{
+    else
+    {
         //Serial.println();
     }
 }
 
-int8_t TrackPad::poll(TouchEvent* tevent, uint8_t &size) {
+int8_t TrackPad::poll(TouchEvent* tevent, uint8_t &size)
+{
     if (packet_bytes_read < packet_size)
     {
         ps2.BeginRead();

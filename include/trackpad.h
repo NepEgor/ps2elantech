@@ -56,26 +56,7 @@ class TrackPad
     uint8_t reg_07;
     uint8_t reg_10;
 
-    /* unused
-    uint8_t reg_11;
-    uint8_t reg_20;
-    uint8_t reg_21;
-    uint8_t reg_22;
-    uint8_t reg_23;
-    uint8_t reg_24;
-    uint8_t reg_25;
-    uint8_t reg_26;
-    */
-
     uint8_t write_reg_state;
-
-    /* unused
-    uint8_t timeout_tries;
-    uint8_t timeout_state;
-    uint32_t timeout_start;
-
-    uint8_t command_state;
-    */
 
     static const uint8_t packet_size = 6;
     uint8_t packet_bytes_read;
@@ -93,8 +74,6 @@ class TrackPad
     void elantech_query_info();
     void elantech_setup_ps2();
 
-    //void resync();
-
     public:
 
     TrackPad();
@@ -104,21 +83,17 @@ class TrackPad
     uint8_t elantech_command(uint8_t command, uint8_t *param, bool wait = false);
     uint8_t elantech_write_reg(uint8_t reg, uint8_t val, bool wait = false);
     
-    //uint8_t ps2_command_timeout(uint16_t command, uint8_t *param = NULL, bool wait = false);
-
     int8_t poll(TouchEvent* tevent, uint8_t &size);
 
-    int32_t getMaxX() {return x_max;}
-    int32_t getMaxY() {return y_max;}
+    int32_t getMaxX() { return x_max; }
+    int32_t getMaxY() { return y_max; }
 
     uint8_t elantech_packet_check_v4();
     void process_packet_status_v4(TouchEvent* tevent, uint8_t &size);
     void process_packet_head_v4(TouchEvent* tevent, uint8_t &size);
     void process_packet_motion_v4(TouchEvent* tevent, uint8_t &size);
 
-    void inline int_on_clock(){
-        ps2.int_on_clock();
-    }
+    void inline int_on_clock(){ ps2.int_on_clock(); }
 };
 
 #endif // TRACKPAD_H
