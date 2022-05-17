@@ -103,6 +103,10 @@ void PS2::EndRead() {
     pinMode(dataPin, OUTPUT);
     digitalWrite(clockPin, LOW);
     digitalWrite(dataPin, HIGH);
+
+    raw = 0;
+    shift = 0;
+    parity = 1;
 }
 
 uint8_t PS2::readByte(uint8_t &data) {
